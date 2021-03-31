@@ -30,7 +30,7 @@ public class SynonymProvider {
 				StringBuilder sb = new StringBuilder();
 				for (String word : lineRegisry) {
 					if (sb.length() > 0) {
-						sb.append(", ");
+						sb.append(",");
 					}
 					sb.append(word);
 				}
@@ -54,7 +54,7 @@ public class SynonymProvider {
 	}
 	
 	public File getFile() throws IOException {
-		File textFile = new File(getFilePath(), "SINONYM.sin");
+		File textFile = new File(getFilePath(), "sinonyms.sin");
 		if (!textFile.exists()) {
 			textFile.createNewFile();
 		}
