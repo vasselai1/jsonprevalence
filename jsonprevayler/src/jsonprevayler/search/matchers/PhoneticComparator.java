@@ -1,4 +1,4 @@
-package jsonprevayler.util;
+package jsonprevayler.search.matchers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.apache.commons.codec.language.DoubleMetaphone;
 
-public class PhoneticUtil {
+public class PhoneticComparator {
 
 	private static final DoubleMetaphone DOUBLE_METAPHONE = new DoubleMetaphone();
 	

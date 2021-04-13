@@ -1,4 +1,4 @@
-package jsonprevayler.util;
+package jsonprevayler.search.matchers;
 
 import jsonprevayler.entity.GeoPoint;
 
@@ -28,7 +28,7 @@ import jsonprevayler.entity.GeoPoint;
 /*::           GeoDataSource.com (C) All Rights Reserved 2019                :*/
 /*::           The sample code is licensed under LGPLv3.                     :*/
 /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-public class DistanceUtil {
+public class GeoDistanceCalculator {
 
 	public static void main (String[] args) throws java.lang.Exception {
 		System.out.println(distance(32.9697, -96.80322, 29.46786, -98.53506, "M") + " Miles\n");
