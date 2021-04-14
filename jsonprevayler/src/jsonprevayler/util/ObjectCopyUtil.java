@@ -11,7 +11,7 @@ import java.util.List;
 
 public class ObjectCopyUtil {
 
-	public static Object copyEntity(Object object) throws IOException, ClassNotFoundException {
+	public static<T> T copyEntity(T object) throws IOException, ClassNotFoundException {
 		if (object == null) {
 			return null;
 		}
@@ -20,7 +20,7 @@ public class ObjectCopyUtil {
 		oos.writeObject(object);
 		ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());
 		ObjectInputStream ois = new ObjectInputStream(bis);
-		return ois.readObject();
+		return (T) ois.readObject();
 	}	
 	
 	public static <T> List<T> copyList(Class<T> classe, Collection<T> entityCollection) throws ClassNotFoundException, IOException {

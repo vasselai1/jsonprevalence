@@ -18,9 +18,12 @@ class CopyPojoTest {
 		user1.setMail("adfasdf@gmail.com");
 		user1.setPasswd("sfgsdfg");
 		
-		User user2 = (User) ObjectCopyUtil.copyEntity(user1);
+		User user2 = ObjectCopyUtil.copyEntity(user1);
 		
 		assertEquals(user1.getName(), user2.getName());
+		
+		user2.setName("ABCD");
+		assertNotEquals(user1.getName(), user2.getName());
 	}
 
 }
