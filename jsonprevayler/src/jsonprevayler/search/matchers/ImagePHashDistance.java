@@ -69,7 +69,7 @@ public class ImagePHashDistance {
 		 * 2. Reduce color. The image is reduced to a grayscale just to further
 		 * simplify the number of computations.
 		 */
-		img = grayscale(img);
+		//img = grayscale(img);
 
 		double[][] vals = new double[size][size];
 
@@ -183,6 +183,12 @@ public class ImagePHashDistance {
 		return this.distance(imageSrcFile, imageCanFile);
 	}
 
+	public int distance(InputStream scrData, InputStream canData) throws Exception {
+		String imageSrcFile = this.getHash(scrData);
+		String imageCanFile = this.getHash(canData);
+		return this.distance(imageSrcFile, imageCanFile);		
+	}
+	
 	public int distance(byte[] scrData, byte[] canData) throws Exception {
 		String imageSrcFile = this.getHash(new ByteArrayInputStream(scrData));
 		String imageCanFile = this.getHash(new ByteArrayInputStream(canData));
