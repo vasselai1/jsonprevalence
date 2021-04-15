@@ -24,10 +24,10 @@ public class HistoryWriter {
 		return historyDir;
 	}
 	
-	public static void write(File oldFile, String author) throws IOException {
+	public static void writeHistory(File oldFile, String author) throws IOException {
 		StringBuilder fileName = new StringBuilder();
 		fileName.append(oldFile.getName().replace(".json", ""));
-		fileName.append("_").append(System.currentTimeMillis());
+		fileName.append("_").append(SDF_HISTORY.format(new Date()));
 		fileName.append("_").append(author);
 		fileName.append(".json");
 		File historyFile = new File(getHistoryDirEntity(oldFile.getParentFile()), fileName.toString());

@@ -401,7 +401,7 @@ public class PrevalenceRepository {
 		String json = serializer.deepSerialize(entity);		
 		Files.write(fileRegister.toPath(), json.getBytes());
 		if ((author != null) && (!author.trim().isEmpty())) {
-			HistoryWriter.write(fileRegister, author);
+			HistoryWriter.writeHistory(fileRegister, author);
 		}
 	}
 	
