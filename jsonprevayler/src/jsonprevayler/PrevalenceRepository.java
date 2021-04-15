@@ -12,15 +12,21 @@ import java.util.logging.Logger;
 
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
-import jsonprevayler.entity.PersistenceEntity;
 import jsonprevayler.entity.PrevalenceEntity;
 import jsonprevayler.entity.VersionedEntity;
 import jsonprevayler.exceptions.ValidationException;
+import jsonprevayler.history.HistoryWriter;
 import jsonprevayler.search.PrevalenceFilter;
+import jsonprevayler.search.processing.MultiThreadSearchProcessor;
+import jsonprevayler.search.processing.RemoteMultiThreadSearchPocessor;
 import jsonprevayler.search.processing.SearchProcessor;
 import jsonprevayler.search.processing.SingleThreadSearchProcessor;
 import jsonprevayler.util.ObjectCopyUtil;
 
+/**
+ * Prevalence (file and memory) CRUD with journal and history for Entities. 
+ * @author vasselai1
+ */
 public class PrevalenceRepository {
 
 	public enum OperationType {
@@ -29,7 +35,7 @@ public class PrevalenceRepository {
 		UPDATE,
 		DELETE;
 	}
-	
+
 	private static final Map<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>> pojoRepository = new HashMap<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>>();
 	private static final Map<Class<? extends PrevalenceEntity>, Map<Long, String>> jsonRepository = new HashMap<Class<? extends PrevalenceEntity>, Map<Long, String>>();
 	private static final List<PrevalenceChangeObserver> observers = new ArrayList<PrevalenceChangeObserver>();
@@ -40,13 +46,26 @@ public class PrevalenceRepository {
 	private SearchProcessor searchProcessor;
 	
 	private Logger log = Logger.getLogger(getClass().getName());
-	
+
+	/**
+	 * @param path dir name for persisted files.
+	 * @param systemName name of your system. 
+	 */
 	public PrevalenceRepository(String path, String systemName) {
 		systemPath = path + FS + systemName;
 		sequenceUtil = new SequenceProvider(systemPath);
 		searchProcessor = new SingleThreadSearchProcessor();
 	}
 
+	/**
+	 * @param path dir name for persisted files.
+	 * @param systemName name of your system. 
+	 * @param searchProcessor Instance for processing searches, you can create a new processor too...
+	 * @see SearchProcessor
+	 * @see SingleThreadSearchProcessor
+	 * @see MultiThreadSearchProcessor
+	 * @see RemoteMultiThreadSearchPocessor
+	 */
 	public PrevalenceRepository(String path, String systemName, SearchProcessor searchProcessor) {
 		this.systemPath = path + FS + systemName;
 		sequenceUtil = new SequenceProvider(systemPath);
@@ -54,19 +73,41 @@ public class PrevalenceRepository {
 		this.searchProcessor = searchProcessor;
 	}	
 	
+	/**
+	 * Register change observer for entities alterations.
+	 * @param observer your new observer.
+	 * @see PrevalenceChangeObserver
+	 */
 	public void register(PrevalenceChangeObserver observer) {
 		observers.add(observer);
 	}
 	
+	/**
+	 * Save your entity without history.
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param entity Your instance entity.
+	 * @throws ValidationException When entity not correctly informed.
+	 * @throws IOException When not possible write files
+	 */
 	public <T extends PrevalenceEntity> void save(Class<T> classe, T entity) throws ValidationException, IOException {
+		save(classe, entity, null);
+	}
+	
+	/**
+	 * Save your entity with history.
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param entity Your instance entity.
+	 * @throws ValidationException When entity not correctly informed.
+	 * @throws IOException When not possible write files.
+	 */	
+	public <T extends PrevalenceEntity> void save(Class<T> classe, T entity, String author) throws ValidationException, IOException {
 		if (classe == null) {
 			throw new ValidationException("Classe is null!");
 		}
 		if (entity == null) {
 			throw new ValidationException("Entity is null!");
-		}
-		if (entity instanceof PersistenceEntity) {
-			throw new ValidationException("This entity is persistence only!");
 		}
 		if (entity.getId() != null) {
 			throw new ValidationException("Id is seted!");
@@ -81,18 +122,36 @@ public class PrevalenceRepository {
 				newVersionedEntity.setVersion(1);
 			}
 			entity.setId(id);
-			writeRegister(classe, entity);
-			updateMemory(classe, OperationType.SAVE, entity);;
+			writeRegister(classe, entity, author);
+			updateMemory(classe, OperationType.SAVE, entity);
+			HistoryWriter.appendJournal(getFilePath(classe), OperationType.SAVE, id);
 		}
 		sendOperationInfo(OperationType.SAVE, classe, entity.getId());
 	}
 	
+	/**
+	 * Update your entity without history.
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param entity Your instance entity.
+	 * @throws ValidationException When entity not corretly seted.
+	 * @throws IOException When not possible write files
+	 */	
 	public  <T extends PrevalenceEntity> void update(Class<T> classe, T entity) throws ValidationException, IOException, ClassNotFoundException {
+		update(classe, entity, null);
+	}
+	
+	/**
+	 * Update your entity with history.
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param entity Your instance entity.
+	 * @throws ValidationException When entity not correctly informed.
+	 * @throws IOException When not possible write files.
+	 */	
+	public  <T extends PrevalenceEntity> void update(Class<T> classe, T entity, String author) throws ValidationException, IOException, ClassNotFoundException {
 		if (entity == null) {
 			throw new ValidationException("Entity is null!");
-		}
-		if (entity instanceof PersistenceEntity) {
-			throw new ValidationException("This entity is persistence only!");
 		}
 		if (entity.getId() == null) {
 			throw new ValidationException("Id is not seted!");
@@ -106,12 +165,21 @@ public class PrevalenceRepository {
 				}
 				newVersionedEntity.setVersion(oldVersionedEntity.getVersion() + 1);
 			}
-			writeRegister(classe, entity);
+			writeRegister(classe, entity, author);
 			updateMemory(classe, OperationType.UPDATE, entity);
+			HistoryWriter.appendJournal(getFilePath(classe), OperationType.UPDATE, entity.getId());
 		}
 		sendOperationInfo(OperationType.UPDATE, classe, entity.getId());
 	}	
 
+	/**
+	 * Delete your entity
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param id your entity identifier 
+	 * @throws ValidationException When entity not correctly informed.
+	 * @throws IOException When not possible write files.
+	 */
 	public  <T extends PrevalenceEntity> void delete(Class<T> classe, Long id) throws ValidationException, IOException {
 		if (classe == null) {
 			throw new ValidationException("Classe is null!");
@@ -122,20 +190,47 @@ public class PrevalenceRepository {
 		synchronized (classe) {
 			deleteRegister(classe, id);
 			updateMemory(classe, OperationType.DELETE, null);
+			HistoryWriter.appendJournal(getFilePath(classe), OperationType.DELETE, id);
 		}
 		sendOperationInfo(OperationType.DELETE, classe, id);
 	}	
 	
+	/**
+	 * Get your entity
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param id your entity identifier 
+	 * @throws IOException When not possible read files.
+	 * @throws ClassNotFoundException When dinamic class instrumentation is used in real time.
+	 */
 	public <T extends PrevalenceEntity> T getPojo(Class<T> classe, Long id) throws IOException, ClassNotFoundException {
 		updateMemory(classe, OperationType.INITIALIZE);
 		return (T) ObjectCopyUtil.copyEntity(pojoRepository.get(classe).get(id));
 	}
 	
+	/**
+	 * Get your entity in json format
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param id your entity identifier 
+	 * @throws IOException When not possible read files.
+	 */	
 	public <T extends PrevalenceEntity> String getJson(Class<T> classe, Long id) throws IOException {
 		updateMemory(classe, OperationType.INITIALIZE);
 		return  jsonRepository.get(classe).get(id);
 	}
 	
+	/**
+	 * List your entities using a filter.
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param filter Your filter.
+	 * @see PrevalenceFilter
+	 * @return List of entities accepted in your filter.
+	 * @throws IOException When not possible read files.
+	 * @throws InterruptedException When threads joins not work. 
+	 * @throws ClassNotFoundException When dinamic class instrumentation is used in real time.
+	 */
 	public <T extends PrevalenceEntity> List<T> listPojo(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException {
 		updateMemory(classe, OperationType.INITIALIZE);
 		List<T> retorno = new ArrayList<T>();
@@ -145,7 +240,7 @@ public class PrevalenceRepository {
 		
 		searchProcessor.setPrevalence(this);
 		searchProcessor.process(classe, filter, retorno, pojoRepository);
-
+		
 		filter.setTotal(retorno.size());
 		retorno.sort(filter.getComparator());
 		int finalRegister = filter.getFirstResult() + filter.getPageSize();
@@ -158,19 +253,49 @@ public class PrevalenceRepository {
 		return ObjectCopyUtil.copyList(classe, retorno.subList(filter.getFirstResult(), finalRegister));
 	}
 
-	public <T extends PrevalenceEntity> Collection<String> listJson(Class<T> classe) throws IOException {
+	/**
+	 * List all your entities using in json format.
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param filter Your filter.
+	 * @see PrevalenceFilter
+	 * @return List of all entities in json format.
+	 * @throws IOException When not possible read files.
+	 * @throws InterruptedException When threads joins not work. 
+	 * @throws ClassNotFoundException When dinamic class instrumentation is used in real time.
+	 */
+	public <T extends PrevalenceEntity> String listJson(Class<T> classe) throws IOException {
 		updateMemory(classe, OperationType.INITIALIZE);
 		Map<Long, String> mapJson = jsonRepository.get(classe);
-		return mapJson.values();
+		return new JSONSerializer().serialize(mapJson.values());
 	}
 
+	/**
+	 * List all your entities.
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @return List of all entities.
+	 * @throws IOException When not possible read files.
+	 * @throws ClassNotFoundException When dinamic class instrumentation is used in real time.
+	 */
 	public <T extends PrevalenceEntity> Collection<T> listPojo(Class<T> classe) throws IOException, ClassNotFoundException {
 		updateMemory(classe, OperationType.INITIALIZE);
 		Map<Long, T> mapPojo = (Map<Long, T>) pojoRepository.get(classe);
 		return ObjectCopyUtil.copyList(classe, mapPojo.values());
 	}	
 	
-	public <T extends PrevalenceEntity> List<String> listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException {
+	/**
+	 * List your entities using a filter in json format.
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param filter Your filter.
+	 * @see PrevalenceFilter
+	 * @return List in json format of entities accepted in your filter.
+	 * @throws IOException When not possible read files.
+	 * @throws InterruptedException When threads joins not work. 
+	 * @throws ClassNotFoundException When dinamic class instrumentation is used in real time.
+	 */
+	public <T extends PrevalenceEntity> String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException {
 		updateMemory(classe, OperationType.INITIALIZE);
 		List<T> filtrados = listPojo(classe, filter);
 		List<String> retorno = new ArrayList<String>();
@@ -178,9 +303,18 @@ public class PrevalenceRepository {
 			String json = jsonRepository.get(classe).get(entityLoop.getId());
 			retorno.add(json);
 		}
-		return retorno;
+		return new JSONSerializer().serialize(retorno);
 	}
 	
+	/**
+	 * Count your entities using a filter.
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @param filter Your filter.
+	 * @see PrevalenceFilter
+	 * @return List of entities accepted in your filter.
+	 * @throws IOException When not possible read files.
+	 */
 	public <T extends PrevalenceEntity> long count(Class<? extends PrevalenceEntity> classe, PrevalenceFilter<T> filter) throws IOException {
 		updateMemory(classe, OperationType.INITIALIZE);
 		if (!pojoRepository.containsKey(classe)) {
@@ -197,6 +331,13 @@ public class PrevalenceRepository {
 		return count;
 	}
 	
+	/**
+	 * Count all your entities.
+	 * @param <T> Prevalence entity type for this operation.
+	 * @param classe Class for repository organization and heritage strategy in files.
+	 * @return List of entities accepted in your filter.
+	 * @throws IOException When not possible read files.
+	 */	
 	public <T extends PrevalenceEntity> long count(Class<? extends PrevalenceEntity> classe) throws IOException {
 		updateMemory(classe, OperationType.INITIALIZE);
 		return pojoRepository.get(classe).size();
@@ -244,7 +385,7 @@ public class PrevalenceRepository {
 		return retorno;
 	} 
 	
-	private <T extends PrevalenceEntity> void writeRegister(Class<T> classe, T entity) throws IOException {
+	private <T extends PrevalenceEntity> void writeRegister(Class<T> classe, T entity, String author) throws IOException {
 		File dirPathClassName = getFilePath(classe);
 		File fileRegister = new File(dirPathClassName, getFileRegisterName(classe, entity.getId()));
 		if (!fileRegister.exists()) {
@@ -253,6 +394,9 @@ public class PrevalenceRepository {
 		JSONSerializer serializer = new JSONSerializer();
 		String json = serializer.deepSerialize(entity);		
 		Files.write(fileRegister.toPath(), json.getBytes());
+		if ((author != null) && (!author.trim().isEmpty())) {
+			HistoryWriter.write(fileRegister, author);
+		}
 	}
 	
 	private <T extends PrevalenceEntity> void deleteRegister(Class<T> classe, Long id) throws IOException {
@@ -343,5 +487,5 @@ public class PrevalenceRepository {
 			}
 		}
 	}
-		
+	
 }

@@ -5,6 +5,7 @@ import java.util.Map;
 
 import jsonprevayler.entity.PrevalenceEntity;
 import jsonprevayler.search.PrevalenceFilter;
+import jsonprevayler.search.ProgressSearchObserver;
 
 public class LocalThreadFilter <T extends PrevalenceEntity> extends Thread {
 
@@ -31,10 +32,17 @@ public class LocalThreadFilter <T extends PrevalenceEntity> extends Thread {
 
 	@Override
 	public void run() {
+		ProgressSearchObserver<T> progress = filter.getProgressSearchObserver();
 		for (Long keyLoop : keysSector) {
 			T entity = (T) pojoRepository.get(classe).get(keyLoop);
 			if (filter.isAcepted(entity)) {
 				retorno.add(entity);
+				if (progress != null) {
+					progress.addFounded(entity);
+				}
+			}
+			if (progress != null) {
+				progress.addOneProgress();
 			}
 		}
 	}

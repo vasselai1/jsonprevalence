@@ -8,6 +8,7 @@ import java.util.Set;
 import jsonprevayler.PrevalenceRepository;
 import jsonprevayler.entity.PrevalenceEntity;
 import jsonprevayler.search.PrevalenceFilter;
+import jsonprevayler.search.ProgressSearchObserver;
 
 public class MultiThreadSearchProcessor implements  SearchProcessor {
 
@@ -25,6 +26,10 @@ public class MultiThreadSearchProcessor implements  SearchProcessor {
 		int numberOfThreads = PROCESSOR_CORES;
 		if (PROCESSOR_CORES > 1) {
 			numberOfThreads = numberOfThreads - 1;
+		}
+		ProgressSearchObserver<T> progress = filter.getProgressSearchObserver();
+		if (progress != null) {
+			progress.setTotal(pojoRepository.size());
 		}
 		int registersPerThread = pojoRepository.size() / numberOfThreads;
 		initSectors(numberOfThreads, registersPerThread, pojoRepository.get(classe).keySet());

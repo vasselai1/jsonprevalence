@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import jsonprevayler.PrevalenceRepository;
 import jsonprevayler.search.AbstractPrevalenceFilter;
+import jsonprevayler.search.ProgressSearchObserver;
 import jsonprevayler.test.entity.User;
 import jsonprevayler.util.HashPasswdUtil;
 import jsonprevayler.util.RecordPathUtil;
@@ -37,8 +38,11 @@ class PrevalenceJsonRepositoryTest {
 
 			@Override
 			public void setPrevalenceInstance(PrevalenceRepository pojoJsonRepository) {
-				// TODO Auto-generated method stub
-				
+			}
+
+			@Override
+			public ProgressSearchObserver getProgressSearchObserver() {
+				return null;
 			}
 		};
 		
@@ -78,10 +82,7 @@ class PrevalenceJsonRepositoryTest {
 	//@Test
 	void testList() throws Exception {
 		PrevalenceRepository prevalence = new PrevalenceRepository(DIR_DADOS_TESTES, "TESTES_ANUNCIOS2");
-		for (String users : prevalence.listJson(User.class)) {
-			System.out.println(users);
-		}
-		System.out.println(prevalence.listJson(User.class).size());
+		System.out.println(prevalence.listJson(User.class));
 	}	
 	
 }

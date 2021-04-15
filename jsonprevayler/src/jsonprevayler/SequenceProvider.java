@@ -9,7 +9,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import jsonprevayler.entity.GeneralEntity;
-import jsonprevayler.entity.PersistenceEntity;
 import jsonprevayler.entity.PrevalenceEntity;
 import jsonprevayler.entity.Sequence;
 
@@ -33,18 +32,6 @@ public class SequenceProvider {
 		}
 		return retorno;
 	}
-	
-	public <T extends PersistenceEntity> long getSequence(Class<T> entidade) throws IOException {
-		String entityName = entidade.getCanonicalName();
-		long retorno = 0;
-		synchronized (entidade) {			
-			Sequence sequence = load(entityName);
-			retorno = sequence.getLastValue() + 1;
-			sequence.setLastValue(retorno);
-			upadate(sequence);
-		}
-		return retorno;
-	}	
 	
 	public static synchronized long get(String dirName) throws IOException {
 		SequenceProvider sequenceProvider = new SequenceProvider(dirName);
