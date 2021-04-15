@@ -3,6 +3,7 @@ package jsonprevayler;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -89,8 +90,9 @@ public class PrevalenceRepository {
 	 * @param entity Your instance entity.
 	 * @throws ValidationException When entity not correctly informed.
 	 * @throws IOException When not possible write files
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public <T extends PrevalenceEntity> void save(Class<T> classe, T entity) throws ValidationException, IOException {
+	public <T extends PrevalenceEntity> void save(Class<T> classe, T entity) throws ValidationException, IOException, NoSuchAlgorithmException {
 		save(classe, entity, null);
 	}
 	
@@ -101,8 +103,9 @@ public class PrevalenceRepository {
 	 * @param entity Your instance entity.
 	 * @throws ValidationException When entity not correctly informed.
 	 * @throws IOException When not possible write files.
+	 * @throws NoSuchAlgorithmException 
 	 */	
-	public <T extends PrevalenceEntity> void save(Class<T> classe, T entity, String author) throws ValidationException, IOException {
+	public <T extends PrevalenceEntity> void save(Class<T> classe, T entity, String author) throws ValidationException, IOException, NoSuchAlgorithmException {
 		if (classe == null) {
 			throw new ValidationException("Classe is null!");
 		}
@@ -124,7 +127,7 @@ public class PrevalenceRepository {
 			entity.setId(id);
 			writeRegister(classe, entity, author);
 			updateMemory(classe, OperationType.SAVE, entity);
-			HistoryWriter.appendJournal(getFilePath(classe), OperationType.SAVE, id);
+			HistoryWriter.appendJournal(getFilePath(classe), OperationType.SAVE, id, getJson(classe, id));
 		}
 		sendOperationInfo(OperationType.SAVE, classe, entity.getId());
 	}
@@ -136,8 +139,9 @@ public class PrevalenceRepository {
 	 * @param entity Your instance entity.
 	 * @throws ValidationException When entity not corretly seted.
 	 * @throws IOException When not possible write files
+	 * @throws NoSuchAlgorithmException 
 	 */	
-	public  <T extends PrevalenceEntity> void update(Class<T> classe, T entity) throws ValidationException, IOException, ClassNotFoundException {
+	public  <T extends PrevalenceEntity> void update(Class<T> classe, T entity) throws ValidationException, IOException, ClassNotFoundException, NoSuchAlgorithmException {
 		update(classe, entity, null);
 	}
 	
@@ -148,8 +152,9 @@ public class PrevalenceRepository {
 	 * @param entity Your instance entity.
 	 * @throws ValidationException When entity not correctly informed.
 	 * @throws IOException When not possible write files.
+	 * @throws NoSuchAlgorithmException 
 	 */	
-	public  <T extends PrevalenceEntity> void update(Class<T> classe, T entity, String author) throws ValidationException, IOException, ClassNotFoundException {
+	public  <T extends PrevalenceEntity> void update(Class<T> classe, T entity, String author) throws ValidationException, IOException, ClassNotFoundException, NoSuchAlgorithmException {
 		if (entity == null) {
 			throw new ValidationException("Entity is null!");
 		}
@@ -167,7 +172,7 @@ public class PrevalenceRepository {
 			}
 			writeRegister(classe, entity, author);
 			updateMemory(classe, OperationType.UPDATE, entity);
-			HistoryWriter.appendJournal(getFilePath(classe), OperationType.UPDATE, entity.getId());
+			HistoryWriter.appendJournal(getFilePath(classe), OperationType.UPDATE, entity.getId(), getJson(classe, entity.getId()));
 		}
 		sendOperationInfo(OperationType.UPDATE, classe, entity.getId());
 	}	
@@ -179,8 +184,9 @@ public class PrevalenceRepository {
 	 * @param id your entity identifier 
 	 * @throws ValidationException When entity not correctly informed.
 	 * @throws IOException When not possible write files.
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public  <T extends PrevalenceEntity> void delete(Class<T> classe, Long id) throws ValidationException, IOException {
+	public  <T extends PrevalenceEntity> void delete(Class<T> classe, Long id) throws ValidationException, IOException, NoSuchAlgorithmException {
 		if (classe == null) {
 			throw new ValidationException("Classe is null!");
 		}
@@ -190,7 +196,7 @@ public class PrevalenceRepository {
 		synchronized (classe) {
 			deleteRegister(classe, id);
 			updateMemory(classe, OperationType.DELETE, null);
-			HistoryWriter.appendJournal(getFilePath(classe), OperationType.DELETE, id);
+			HistoryWriter.appendJournal(getFilePath(classe), OperationType.DELETE, id, "deleted");
 		}
 		sendOperationInfo(OperationType.DELETE, classe, id);
 	}	
