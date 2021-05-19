@@ -149,7 +149,7 @@ public class PrevalenceRepository {
 	}
 	
 	/**
-	 * Update your entity with history.
+	 * Update your entity with history
 	 * @param <T> Prevalence entity type for this operation.
 	 * @param classe Class for repository organization and heritage strategy in files.
 	 * @param entity Your instance entity.
