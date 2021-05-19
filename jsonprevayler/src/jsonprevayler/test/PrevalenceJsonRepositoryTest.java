@@ -8,7 +8,7 @@ import jsonprevayler.PrevalenceRepository;
 import jsonprevayler.search.AbstractPrevalenceFilter;
 import jsonprevayler.search.ProgressSearchObserver;
 import jsonprevayler.test.entity.User;
-import jsonprevayler.util.HashPasswdUtil;
+import jsonprevayler.util.HashUtil;
 import jsonprevayler.util.RecordPathUtil;
 
 class PrevalenceJsonRepositoryTest {
@@ -63,9 +63,9 @@ class PrevalenceJsonRepositoryTest {
 		long initial = System.currentTimeMillis();
 		int count = 1000;
 		for (int i = 0; i < count; i++) { 
-			String nome = HashPasswdUtil.getRandomString(70);
-			String email = HashPasswdUtil.getRandomString(40);
-			String senha = HashPasswdUtil.getRandomString(12);
+			String nome = HashUtil.getRandomString(70);
+			String email = HashUtil.getRandomString(40);
+			String senha = HashUtil.getRandomString(12);
 			User usuario = new User();
 			usuario.setName(nome);
 			usuario.setMail(email);

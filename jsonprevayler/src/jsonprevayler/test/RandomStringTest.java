@@ -4,33 +4,33 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import jsonprevayler.util.HashPasswdUtil;
+import jsonprevayler.util.HashUtil;
 
 class RandomStringTest {
 
 	@Test
 	void test1() throws Exception {
-		System.out.println(HashPasswdUtil.getRandomString(5));
+		System.out.println(HashUtil.getRandomString(5));
 	}
 
 	@Test
 	void test2() throws Exception {
-		System.out.println(HashPasswdUtil.getRandomString(5));
+		System.out.println(HashUtil.getRandomString(5));
 	}	
 
 	@Test
 	void test3() throws Exception {
-		System.out.println(HashPasswdUtil.getRandomString(6));
+		System.out.println(HashUtil.getRandomString(6));
 	}	
 
 	@Test
 	void test4() throws Exception {
-		System.out.println(HashPasswdUtil.getRandomString(8));
+		System.out.println(HashUtil.getRandomString(8));
 	}	
 	
 	@Test
 	void test5() throws Exception {
-		System.out.println(HashPasswdUtil.getRandomString(10));
+		System.out.println(HashUtil.getRandomString(10));
 	}	
 	
 }

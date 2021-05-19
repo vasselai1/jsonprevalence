@@ -10,11 +10,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import jsonprevayler.PrevalenceRepository.OperationType;
-import jsonprevayler.util.HashPasswdUtil;
+import jsonprevayler.util.HashUtil;
 
 public class HistoryWriter {
 
-	private static SimpleDateFormat SDF_HISTORY = new SimpleDateFormat("ddMMyyyy_HH:mm:ss.S");
+	private static SimpleDateFormat SDF_HISTORY = new SimpleDateFormat("ddMMyyyyHHmmssS");
 	
 	private static File getHistoryDirEntity(File baseDir) {
 		File historyDir = new File(baseDir, "history");
@@ -41,13 +41,31 @@ public class HistoryWriter {
 		}
 		StringBuilder journalEntity = new StringBuilder();
 		journalEntity.append(operationType.name().substring(0, 1));
-		journalEntity.append(":");
+		journalEntity.append(";");
 		journalEntity.append(SDF_HISTORY.format(new Date()));
-		journalEntity.append(":");
+		journalEntity.append(";");
 		journalEntity.append(id);
-		journalEntity.append(":");
-		journalEntity.append(HashPasswdUtil.getSha512(json));
+		journalEntity.append(";");
+		journalEntity.append(HashUtil.getMd5(json));
 		journalEntity.append(System.lineSeparator());
 		Files.write(journalFile.toPath(), journalEntity.toString().getBytes(), StandardOpenOption.APPEND);
 	}
+	
+	public static synchronized void appendJournal(File baseDir, OperationType operationType, Long id, byte[] data) throws IOException, NoSuchAlgorithmException {
+		File journalFile = new File(getHistoryDirEntity(baseDir), "operations.jrn");
+		if (!journalFile.exists()) {
+			journalFile.createNewFile();
+		}
+		StringBuilder journalEntity = new StringBuilder();
+		journalEntity.append(operationType.name().substring(0, 1));
+		journalEntity.append(";");
+		journalEntity.append(SDF_HISTORY.format(new Date()));
+		journalEntity.append(";");
+		journalEntity.append(id);
+		journalEntity.append(";");
+		journalEntity.append(HashUtil.getMd5(data));
+		journalEntity.append(System.lineSeparator());
+		Files.write(journalFile.toPath(), journalEntity.toString().getBytes(), StandardOpenOption.APPEND);
+	}	
+	
 }

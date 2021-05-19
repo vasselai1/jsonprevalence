@@ -6,7 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
-public class HashPasswdUtil {
+public class HashUtil {
 
 	public static final String UPPER_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public static final String LOWER_CHARACTERS = UPPER_CHARACTERS.toLowerCase();
@@ -19,7 +19,17 @@ public class HashPasswdUtil {
 		BigInteger no = new BigInteger(1, messageDigest);
 		return String.format("%0128x", no);
 	}
-	
+
+    public static String getMd5(byte[] bytes) throws NoSuchAlgorithmException {
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		byte[] messageDigest = md.digest(bytes);
+		return new BigInteger(1, messageDigest).toString(16);
+	}    
+    
+    public static String getMd5(String texto) throws NoSuchAlgorithmException {
+		return getMd5(texto.getBytes());
+	}
+    
 	public static String getRandomString(int size) throws Exception {
 		if (size < 5) {
 			throw new Exception("Size lower of 5!");

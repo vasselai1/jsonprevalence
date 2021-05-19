@@ -6,10 +6,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import jsonprevayler.PrevalenceRepository.OperationType;
+import jsonprevayler.exceptions.ValidationException;
+import jsonprevayler.history.HistoryWriter;
+
+/**
+ * Prevalence for binaries
+ * @author vasselai1
+ */
 public class PrevalenceBinaryRepository {
 	
 	private static Map<Long, byte[]> binaryRepository = new HashMap<Long, byte[]>();
@@ -25,6 +34,10 @@ public class PrevalenceBinaryRepository {
 		this.systemPath = path + FS + systemName;
 	}	
 	
+	/**
+	 * @param path dir name for persisted files.
+	 * @param systemName name of your system. 
+	 */
 	public Long save(byte[] data) throws IOException, Exception {
 		initialize();
 		return save(new ByteArrayInputStream(data));
@@ -36,6 +49,7 @@ public class PrevalenceBinaryRepository {
 		File file = getBinaryFile(id);
 		Files.copy(inputStream, file.toPath());
 		binaryRepository.put(id, Files.readAllBytes(file.toPath()));
+		HistoryWriter.appendJournal(getFilePath(), OperationType.SAVE, id, binaryRepository.get(id));
 		return id;
 	}
 	
@@ -53,8 +67,9 @@ public class PrevalenceBinaryRepository {
 				binaryRepository.replace(id, Files.readAllBytes(file.toPath()));
 			} else {
 				binaryRepository.put(id, Files.readAllBytes(file.toPath()));
-			}
+			}			
 		}
+		HistoryWriter.appendJournal(getFilePath(), OperationType.UPDATE, id, binaryRepository.get(id));
 	}
 	
 	public void delete(Long id) throws IOException, Exception {
@@ -69,6 +84,7 @@ public class PrevalenceBinaryRepository {
 				binaryRepository.remove(id);
 			}
 		}
+		HistoryWriter.appendJournal(getFilePath(), OperationType.SAVE, id, "deleted");
 	}
 	
 	public byte[] get(Long id) throws IOException {

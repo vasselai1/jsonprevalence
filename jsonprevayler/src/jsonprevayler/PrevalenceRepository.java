@@ -91,8 +91,9 @@ public class PrevalenceRepository {
 	 * @throws ValidationException When entity not correctly informed.
 	 * @throws IOException When not possible write files
 	 * @throws NoSuchAlgorithmException 
+	 * @throws ClassNotFoundException 
 	 */
-	public <T extends PrevalenceEntity> void save(Class<T> classe, T entity) throws ValidationException, IOException, NoSuchAlgorithmException {
+	public <T extends PrevalenceEntity> void save(Class<T> classe, T entity) throws ValidationException, IOException, NoSuchAlgorithmException, ClassNotFoundException {
 		save(classe, entity, null);
 	}
 	
@@ -104,8 +105,9 @@ public class PrevalenceRepository {
 	 * @throws ValidationException When entity not correctly informed.
 	 * @throws IOException When not possible write files.
 	 * @throws NoSuchAlgorithmException 
+	 * @throws ClassNotFoundException 
 	 */	
-	public <T extends PrevalenceEntity> void save(Class<T> classe, T entity, String author) throws ValidationException, IOException, NoSuchAlgorithmException {
+	public <T extends PrevalenceEntity> void save(Class<T> classe, T entity, String author) throws ValidationException, IOException, NoSuchAlgorithmException, ClassNotFoundException {
 		if (classe == null) {
 			throw new ValidationException("Classe is null!");
 		}
@@ -125,8 +127,9 @@ public class PrevalenceRepository {
 				newVersionedEntity.setVersion(1);
 			}
 			entity.setId(id);
-			writeRegister(classe, entity, author);
-			updateMemory(classe, OperationType.SAVE, entity);
+			T entitySave = ObjectCopyUtil.copyEntity(entity);
+			writeRegister(classe, entitySave, author);
+			updateMemory(classe, OperationType.SAVE, entitySave);
 			HistoryWriter.appendJournal(getFilePath(classe), OperationType.SAVE, id, getJson(classe, id));
 		}
 		sendOperationInfo(OperationType.SAVE, classe, entity.getId());
@@ -170,9 +173,10 @@ public class PrevalenceRepository {
 				}
 				newVersionedEntity.setVersion(oldVersionedEntity.getVersion() + 1);
 			}
-			writeRegister(classe, entity, author);
-			updateMemory(classe, OperationType.UPDATE, entity);
-			HistoryWriter.appendJournal(getFilePath(classe), OperationType.UPDATE, entity.getId(), getJson(classe, entity.getId()));
+			T entityUpdate = ObjectCopyUtil.copyEntity(entity);
+			writeRegister(classe, entityUpdate, author);
+			updateMemory(classe, OperationType.UPDATE, entityUpdate);
+			HistoryWriter.appendJournal(getFilePath(classe), OperationType.UPDATE, entityUpdate.getId(), getJson(classe, entity.getId()));
 		}
 		sendOperationInfo(OperationType.UPDATE, classe, entity.getId());
 	}	
