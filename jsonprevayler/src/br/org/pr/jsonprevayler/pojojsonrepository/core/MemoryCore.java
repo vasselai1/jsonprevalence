@@ -31,7 +31,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 
 	public static void setInitializationType(InitializationMemoryCoreType initilization) {
 		if ((initilizationType != null) && (!initilizationType.equals(initilization))) {
-			throw new RuntimeException("InitializationType is " + initilizationType + " and can only be informed once time!");
+			throw new RuntimeException("InitializationType is " + initilizationType + " and can only be informed once!");
 		}
 		initilizationType = initilization;
 	}
