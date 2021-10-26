@@ -8,17 +8,17 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import br.org.pr.jsonprevayler.PrevalentBinaryRepository;
-import br.org.pr.jsonprevayler.PrevalentJsonRepository;
+import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 
 public class BackupProvider {
 	
-	private final PrevalentJsonRepository prevalenceJson;
+	private final PrevalentRepository prevalenceJson;
 	private final PrevalentBinaryRepository prevalenceBinary;
 	
 	public BackupProvider(String systemPath, String systemName) {
-		prevalenceJson = new PrevalentJsonRepository(systemPath, systemName);
+		prevalenceJson = new PrevalentRepository(systemPath, systemName);
 		prevalenceBinary = new PrevalentBinaryRepository(systemPath, systemName);
 	}
 	

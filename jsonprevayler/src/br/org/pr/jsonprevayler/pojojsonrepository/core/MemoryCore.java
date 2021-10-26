@@ -21,6 +21,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 	private static final Map<Class<? extends PrevalenceEntity>, Map<Long, String>> jsonRepository = new HashMap<Class<? extends PrevalenceEntity>, Map<Long, String>>();
 	private static final List<PrevalenceChangeObserver> observers = new ArrayList<PrevalenceChangeObserver>();
 	private static boolean inMaintenance = false;
+	private static InitializationMemoryCoreType initilizationType = null;
 	private FileCore fileCore;
 	private Logger log = Logger.getLogger(getClass().getName());
 	
@@ -28,6 +29,13 @@ public class MemoryCore implements MemorySearchEngineInterface {
 		this.fileCore = fileCore;
 	}
 
+	public static void setInitializationType(InitializationMemoryCoreType initilization) {
+		if ((initilizationType != null) && (!initilizationType.equals(initilization))) {
+			throw new RuntimeException("InitializationType is " + initilizationType + " and can only be informed once time!");
+		}
+		initilizationType = initilization;
+	}
+	
 	public static void register(PrevalenceChangeObserver observer) {
 		observers.add(observer);
 	}
@@ -40,29 +48,38 @@ public class MemoryCore implements MemorySearchEngineInterface {
 	}		
 	
 	public <T extends PrevalenceEntity> void updateMemory(Class<T> classe, OperationType operationType, T entity) throws IOException, ValidationPrevalenceException {
+		if (initilizationType == null) {
+			throw new ValidationPrevalenceException("Initialization Type don't seted!");
+		}
 		if (inMaintenance) {
 			throw new ValidationPrevalenceException("Prevalence don't be start when maintenance is running! Plese wait the end maintenance.");
 		}
 		JSONSerializer serializer = new JSONSerializer();
-		if ((pojoRepository.get(classe) == null) || (jsonRepository.get(classe) == null)) {
+		if (pojoRepository.get(classe) == null) {
 			initPrevalence(classe, serializer);
 		}
 		if (OperationType.INITIALIZE.equals(operationType)) {
 			return;
 		}
-		if (OperationType.SAVE.equals(operationType)) {
-			String json = serializer.deepSerialize(entity);
+		if (OperationType.SAVE.equals(operationType)) {			
 			pojoRepository.get(classe).put(entity.getId(), entity);
-			jsonRepository.get(classe).put(entity.getId(), json);
+			if (InitializationMemoryCoreType.POJO_AND_ENUM.equals(initilizationType)) {
+				String json = serializer.deepSerialize(entity);
+				jsonRepository.get(classe).put(entity.getId(), json);
+			}
 		}
-		if (OperationType.UPDATE.equals(operationType)) {
-			String json = serializer.deepSerialize(entity);
+		if (OperationType.UPDATE.equals(operationType)) {			
 			pojoRepository.get(classe).replace(entity.getId(), entity);
-			jsonRepository.get(classe).replace(entity.getId(), json);
+			if (InitializationMemoryCoreType.POJO_AND_ENUM.equals(initilizationType)) {
+				String json = serializer.deepSerialize(entity);
+				jsonRepository.get(classe).replace(entity.getId(), json);
+			}
 		}
 		if (OperationType.DELETE.equals(operationType)) {
 			pojoRepository.get(classe).remove(entity.getId());
-			jsonRepository.get(classe).remove(entity.getId());
+			if (InitializationMemoryCoreType.POJO_AND_ENUM.equals(initilizationType)) {
+				jsonRepository.get(classe).remove(entity.getId());
+			}
 		}
 		sendOperationInfo(operationType, classe, entity.getId());
 	}
@@ -72,10 +89,12 @@ public class MemoryCore implements MemorySearchEngineInterface {
 		pojoRepository.put(classe, new HashMap<Long, PrevalenceEntity>());
 		jsonRepository.put(classe, new HashMap<Long, String>());			
 		List<? extends PrevalenceEntity> registries = fileCore.readRegistries(classe);
-		for (PrevalenceEntity entityLoop : registries) {
-			String json = serializer.deepSerialize(entityLoop);
+		for (PrevalenceEntity entityLoop : registries) {			
 			pojoRepository.get(classe).put(entityLoop.getId(), entityLoop);
-			jsonRepository.get(classe).put(entityLoop.getId(), json);
+			if (InitializationMemoryCoreType.POJO_AND_ENUM.equals(initilizationType)) {
+				String json = serializer.deepSerialize(entityLoop);
+				jsonRepository.get(classe).put(entityLoop.getId(), json);
+			}
 		}
 		initializePrevalentRelations(classe);
 	}	
@@ -84,7 +103,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 	public <T extends PrevalenceEntity> Integer count(Class<T> classe) throws IOException, ClassNotFoundException, ValidationPrevalenceException {
 		classe = getClassRepository(classe);
 		initializePrevalentRelations(classe);
-		return jsonRepository.get(classe).size();
+		return pojoRepository.get(classe).size();
 	}		
 	
 	@SuppressWarnings("unchecked")
@@ -97,13 +116,19 @@ public class MemoryCore implements MemorySearchEngineInterface {
 	public <T extends PrevalenceEntity> String getJson(Class<T> classe, Long id) throws IOException, ValidationPrevalenceException {
 		classe = getClassRepository(classe);
 		initializePrevalentRelations(classe);
-		return jsonRepository.get(classe).get(id);
+		if (InitializationMemoryCoreType.POJO_AND_ENUM.equals(initilizationType)) {
+			return jsonRepository.get(classe).get(id);
+		}
+		return new JSONSerializer().deepSerialize(pojoRepository.get(classe).get(id));
 	}
 	
 	public <T extends PrevalenceEntity> String listJson(Class<T> classe) throws IOException, ValidationPrevalenceException {
 		classe = getClassRepository(classe);
 		initilize(classe);
-		return new JSONSerializer().serialize(jsonRepository.get(classe).values());
+		if (InitializationMemoryCoreType.POJO_AND_ENUM.equals(initilizationType)) {
+			return new JSONSerializer().serialize(jsonRepository.get(classe).values());
+		}
+		return new JSONSerializer().serialize(pojoRepository.values());
 	}	
 	
 	private <T extends PrevalenceEntity> void initializePrevalentRelations(Class<T> classe) {

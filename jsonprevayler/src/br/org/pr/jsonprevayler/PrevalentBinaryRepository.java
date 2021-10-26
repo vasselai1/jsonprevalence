@@ -18,6 +18,7 @@ import br.org.pr.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.infrastrutuctre.HistoryJornalWriter;
 import br.org.pr.jsonprevayler.infrastrutuctre.SequenceProvider;
+import br.org.pr.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.OperationType;
 
 /**
@@ -37,8 +38,8 @@ public class PrevalentBinaryRepository {
 	
 	private Logger log = Logger.getLogger(getClass().getName());
 	
-	public PrevalentBinaryRepository(String path, String systemName) {
-		this.systemPath = path + FS + systemName;
+	public PrevalentBinaryRepository(PrevalenceConfigurator prevalenceConfigurator) {
+		this.systemPath = prevalenceConfigurator.getPrevalencePath() + FS + prevalenceConfigurator.getSystemName();
 		sequenceUtil = new SequenceProvider(systemPath);
 	}	
 
@@ -51,11 +52,7 @@ public class PrevalentBinaryRepository {
 		return save(new ByteArrayInputStream(data));
 	}
 	
-	public Long save(InputStream inputStream) throws IOException, Exception {
-		return save(inputStream, null);
-	}
-	
-	public Long save(InputStream inputStream, String author) throws InternalPrevalenceException, IOException, ValidationPrevalenceException, NoSuchAlgorithmException {
+	public Long save(InputStream inputStream) throws InternalPrevalenceException, IOException, ValidationPrevalenceException, NoSuchAlgorithmException {
 		initialize();
 		Long id = SequenceProvider.get(systemPath);
 		if (isIdUsed(id)) {
@@ -65,7 +62,7 @@ public class PrevalentBinaryRepository {
 		Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		sequenceUtil.get(TotalChangesBinarySystem.class);
 		binaryRepository.put(id, Files.readAllBytes(file.toPath()));
-		HistoryJornalWriter.writeHistory(file, author);
+		HistoryJornalWriter.writeHistory(file);
 		HistoryJornalWriter.appendJournal(getFilePath(), OperationType.SAVE, id, binaryRepository.get(id));
 		return id;
 	}
@@ -94,7 +91,7 @@ public class PrevalentBinaryRepository {
 				binaryRepository.put(id, Files.readAllBytes(file.toPath()));
 			}			
 		}		
-		HistoryJornalWriter.writeHistory(file, author);	
+		HistoryJornalWriter.writeHistory(file);	
 		HistoryJornalWriter.appendJournal(getFilePath(), OperationType.UPDATE, id, binaryRepository.get(id));
 	}
 	

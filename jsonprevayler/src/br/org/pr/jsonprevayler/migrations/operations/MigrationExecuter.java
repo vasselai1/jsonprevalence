@@ -5,14 +5,14 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Date;
 
-import br.org.pr.jsonprevayler.PrevalentJsonRepository;
+import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.migrations.MigrationInstruction;
 
 public abstract class MigrationExecuter {
 	
 	protected final String FS = File.separator;
-	protected final PrevalentJsonRepository prevalence;
+	protected final PrevalentRepository prevalence;
 	protected final MigrationInstruction migrationInstruction;
 	protected final Date instanciationMoment = new Date();
 	
@@ -23,7 +23,7 @@ public abstract class MigrationExecuter {
 		}
 	};
 	
-	protected MigrationExecuter(MigrationInstruction migrationInstruction, PrevalentJsonRepository prevalence) {
+	protected MigrationExecuter(MigrationInstruction migrationInstruction, PrevalentRepository prevalence) {
 		this.migrationInstruction = migrationInstruction;
 		this.prevalence = prevalence;
 	}

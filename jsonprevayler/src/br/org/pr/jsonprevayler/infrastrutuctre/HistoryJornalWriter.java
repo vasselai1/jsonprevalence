@@ -27,18 +27,11 @@ public class HistoryJornalWriter {
 		return historyDir;
 	}
 	
-	public static void writeHistory(File oldFile, String author) throws IOException {
-		if ((author == null) || author.trim().isEmpty()) {
-			author = "unknown";
-		}
-		if (author.length() > 100) {
-			author = author.substring(0, 99);
-		}
+	public static void writeHistory(File oldFile) throws IOException {
 		String fileExtension = getExtension(oldFile);
 		StringBuilder fileName = new StringBuilder();
 		fileName.append(oldFile.getName().replace(fileExtension, ""));
-		fileName.append("_").append(SDF_HISTORY.format(new Date()));
-		fileName.append("_").append(author);
+		fileName.append("_").append(SDF_HISTORY.format(new Date()));		
 		fileName.append(fileExtension);
 		File historyFile = new File(getHistoryDirEntity(oldFile.getParentFile()), fileName.toString());
 		Files.copy(oldFile.toPath(), historyFile.toPath(), StandardCopyOption.REPLACE_EXISTING);

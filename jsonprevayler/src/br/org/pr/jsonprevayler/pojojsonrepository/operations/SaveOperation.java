@@ -19,13 +19,9 @@ import br.org.pr.jsonprevayler.pojojsonrepository.core.OperationType;
 import br.org.pr.jsonprevayler.util.ObjectCopyUtil;
 
 public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperations<T> implements ComandOperationInterface {
-	
-	private SequenceProvider sequenceUtil;
-	private MemoryCore memoryCore;
-	private FileCore fileCore;
+
 	private T entity;
 	private Class<T> classeInternal;
-	private String author;
 	private boolean deepSave;
 	private boolean isCascadeExecuted = false;
 	private CascadeOperation<T> cascadeOperation;
@@ -38,15 +34,12 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 	}
 
 	public void setCore(SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
-		this.sequenceUtil = sequenceUtil;
-		this.memoryCore = memoryCore;
-		this.fileCore = fileCore;
+		setCore(memoryCore, fileCore, sequenceUtil);
 		cascadeOperation = new CascadeOperation<T>(sequenceUtil, memoryCore, fileCore);
 	}
 
-	public SaveOperation<T> set(T entity, String author, boolean deepSave) {
+	public SaveOperation<T> set(T entity, boolean deepSave) {
 		this.entity = entity;
-		this.author = author;
 		this.deepSave = deepSave;
 		return this;
 	}
@@ -67,7 +60,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 			validateAllRelationsPersisted(instructions);
 		}
 		synchronized (classeInternal) {
-			Long id = sequenceUtil.get(classeInternal);
+			Long id = sequenceProvider.get(classeInternal);
 			if (memoryCore.isIdUsed(classeInternal, id)) {
 				throw new InternalPrevalenceException("Id " + id + " is repeated! Please see the max value id in entities " + entity.getClass().getCanonicalName() + " and set +1 in sequence file!");
 			}
@@ -82,14 +75,14 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 			state = OperationState.VALIDATED;
 			try {
 				if (deepSave) {
-					cascadeOperation.set(instructions, author).execute();
+					cascadeOperation.set(instructions).execute();
 					isCascadeExecuted = true;
 					state = OperationState.RELATIONS_SAVED;
 				}
 				T entitySave = ObjectCopyUtil.copyEntity(entity);
-				fileCore.writeRegister(classeInternal, entitySave, author, instructions);
+				fileCore.writeRegister(classeInternal, entitySave, instructions);
 				state = OperationState.ENTITY_WRITED;
-				sequenceUtil.get(TotalChangesPrevalenceSystem.class);
+				sequenceProvider.get(TotalChangesPrevalenceSystem.class);
 				state = OperationState.PREVALENCE_VERSION_UPDATED;
 				memoryCore.updateMemory(classeInternal, OperationType.SAVE, entitySave);
 				state = OperationState.MEMORY_UPDATED;

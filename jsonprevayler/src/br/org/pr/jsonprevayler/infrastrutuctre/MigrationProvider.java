@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import br.org.pr.jsonprevayler.PrevalentJsonRepository;
+import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.entity.MigrationExecution;
 import br.org.pr.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionException;
 import br.org.pr.jsonprevayler.exceptions.InternalPrevalenceException;
@@ -34,12 +34,12 @@ public class MigrationProvider {
 		PENDING;
 	}
 
-	private final PrevalentJsonRepository<MigrationExecution> prevalence;
+	private final PrevalentRepository<MigrationExecution> prevalence;
 	private final String FS = File.separator;
 	private Set<SecurityMigrationCopy> securityCopies = new TreeSet<SecurityMigrationCopy>();
 	
 	public MigrationProvider(String systemPath, String systemName) {
-		this.prevalence = new PrevalentJsonRepository<MigrationExecution>(systemPath, systemName);
+		this.prevalence = new PrevalentRepository<MigrationExecution>(systemPath, systemName);
 	}
 
 	public List<MigrationInstruction> readMigrationsFile(InputStream inputStreamMigrationsFile, ReadType readType) throws IOException, ClassNotFoundException, InterruptedException, ValidationPrevalenceException {
@@ -161,7 +161,7 @@ public class MigrationProvider {
 	}
 	
 	public void migrate(InputStream inputStreamMigrationsFile) throws ValidationPrevalenceException, IOException, ClassNotFoundException, InternalPrevalenceException, InterruptedException {
-		if (PrevalentJsonRepository.isMainInitialized()) {
+		if (PrevalentRepository.isMainInitialized()) {
 			throw new ValidationPrevalenceException("When PrevalenceJsonRepository is initialized migrations don't be started! Please stop aplication before run migrations.");
 		}
 		validate(inputStreamMigrationsFile);

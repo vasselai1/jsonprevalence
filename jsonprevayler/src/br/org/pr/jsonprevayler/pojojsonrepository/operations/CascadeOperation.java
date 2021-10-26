@@ -21,8 +21,7 @@ public class CascadeOperation <T extends PrevalenceEntity> implements ComandOper
 	private final SequenceProvider sequenceUtil;
 	private final MemoryCore memoryCore;
 	private final FileCore fileCore;
-	private JsonSerializationInstructions instructions; 
-	private String author;
+	private JsonSerializationInstructions instructions;
 	private final List<ComandOperationInterface> executedsOperations = new ArrayList<ComandOperationInterface>();
 	
 	public CascadeOperation(SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
@@ -31,9 +30,8 @@ public class CascadeOperation <T extends PrevalenceEntity> implements ComandOper
 		this.sequenceUtil = sequenceUtil;
 	}
 
-	public CascadeOperation<T> set(JsonSerializationInstructions instructions, String author) {
+	public CascadeOperation<T> set(JsonSerializationInstructions instructions) {
 		this.instructions = instructions;
-		this.author = author;
 		return this;
 	}
 	
@@ -45,11 +43,11 @@ public class CascadeOperation <T extends PrevalenceEntity> implements ComandOper
 			for (T entityLoop : values) {
 				if (entityLoop.getId() == null) {
 					SaveOperation<T> saveOperation = new SaveOperation<T>(sequenceUtil, memoryCore, fileCore);
-					saveOperation.set(entityLoop, author, true).execute();
+					saveOperation.set(entityLoop, true).execute();
 					executedsOperations.add(saveOperation);
 				} else {
 					UpdateOperation<T> updateOperation = new UpdateOperation<T>(sequenceUtil, memoryCore, fileCore);
-					updateOperation.set(entityLoop, author, true);
+					updateOperation.set(entityLoop, true);
 					executedsOperations.add(updateOperation);
 				}
 			}
@@ -69,6 +67,7 @@ public class CascadeOperation <T extends PrevalenceEntity> implements ComandOper
 		for (ComandOperationInterface operationLoop : executedsOperations) {
 			operationLoop.undo();
 		}
-	}	
-	
+	}
+
+
 }

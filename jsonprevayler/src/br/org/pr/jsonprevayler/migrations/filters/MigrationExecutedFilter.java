@@ -2,7 +2,7 @@ package br.org.pr.jsonprevayler.migrations.filters;
 
 import java.util.Comparator;
 
-import br.org.pr.jsonprevayler.PrevalentJsonRepository;
+import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.entity.MigrationExecution;
 import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
 import br.org.pr.jsonprevayler.search.PrevalenceFilter;
@@ -53,7 +53,7 @@ public class MigrationExecutedFilter implements PrevalenceFilter<MigrationExecut
 	}
 
 	@Override
-	public void setPrevalenceInstance(PrevalentJsonRepository pojoJsonRepository) {
+	public void setPrevalenceInstance(PrevalentRepository pojoJsonRepository) {
 		
 	}
 

@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import br.org.pr.jsonprevayler.PrevalentJsonRepository;
+import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.migrations.MigrationInstruction;
 
@@ -15,7 +15,7 @@ public class RenameEntity extends MigrationExecuter {
 	private String actualFilesPrefix = null;
 	private String newFilesPrexis = null; 
 	
-	public RenameEntity(MigrationInstruction migrationInstruction, PrevalentJsonRepository prevalence) {
+	public RenameEntity(MigrationInstruction migrationInstruction, PrevalentRepository prevalence) {
 		super(migrationInstruction, prevalence);
 	}
 

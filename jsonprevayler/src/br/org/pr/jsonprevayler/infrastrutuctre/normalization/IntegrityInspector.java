@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import br.org.pr.jsonprevayler.PrevalentJsonRepository;
+import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 
@@ -45,7 +45,7 @@ public class IntegrityInspector {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private <T extends PrevalenceEntity> List<? extends PrevalenceEntity> filterEntities(T entity, Class<? extends PrevalenceEntity> classePrevalent) throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		List<T> prevalentClassesForEntity = new ArrayList<>();
-		PrevalentJsonRepository prevalentLoop = new PrevalentJsonRepository(path, systemName);
+		PrevalentRepository prevalentLoop = new PrevalentRepository(path, systemName);
 		List<? extends PrevalenceEntity> allEntities = prevalentLoop.listPojo(classePrevalent);
 		for (PrevalenceEntity entityLoop : allEntities) {
 			JsonSerializationInstructions serializationInstrucions = PrevalentAtributesValuesIdentificator.getJsonSerializationInstructions(entityLoop);
@@ -63,7 +63,7 @@ public class IntegrityInspector {
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private List<Class<? extends PrevalenceEntity>> listAllPrevalentClasses() {
-		PrevalentJsonRepository prevalentSystem = new PrevalentJsonRepository<PrevalenceEntity>(path, systemName);
+		PrevalentRepository prevalentSystem = new PrevalentRepository<PrevalenceEntity>(path, systemName);
 		File prevalenceDir = prevalentSystem.getPrevalenceDir(prevalentSystem.getSystemFileDir());		
 		List<Class<? extends PrevalenceEntity>> prevalentClasses = new ArrayList<>();
 		for (File directoryLoop : prevalenceDir.listFiles()) {

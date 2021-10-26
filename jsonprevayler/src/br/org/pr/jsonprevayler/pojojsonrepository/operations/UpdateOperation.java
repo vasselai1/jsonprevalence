@@ -19,14 +19,10 @@ import br.org.pr.jsonprevayler.pojojsonrepository.core.OperationType;
 import br.org.pr.jsonprevayler.util.ObjectCopyUtil;
 
 public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperations<T> implements ComandOperationInterface {
-	
-	private final SequenceProvider sequenceUtil;
-	private final MemoryCore memoryCore;
-	private final FileCore fileCore;
+
 	private Class<T> classeInternal;
 	private T entity;
-	private T oldEntity;
-	private String author; 
+	private T oldEntity; 
 	private boolean updateDeep;
 	private boolean isCascadeExecuted = false;	
 	private final CascadeOperation<T> cascadeOperation;
@@ -34,15 +30,12 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 	private OperationState state = OperationState.INITIALIZED;
 	
 	public UpdateOperation(SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
-		this.sequenceUtil = sequenceUtil;
-		this.memoryCore = memoryCore;
-		this.fileCore = fileCore;
+		setCore(memoryCore, fileCore, sequenceUtil);
 		cascadeOperation = new CascadeOperation<T>(sequenceUtil, memoryCore, fileCore);
 	}
 	
-	public UpdateOperation<T> set(T entity, String author, boolean updateDeep) {
+	public UpdateOperation<T> set(T entity, boolean updateDeep) {
 		this.entity = entity;
-		this.author = author;
 		this.updateDeep = updateDeep;
 		return this;
 	}
@@ -73,14 +66,14 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 			state = OperationState.VALIDATED;
 			try {
 				if (updateDeep) {
-					cascadeOperation.set(instructions, author).execute();				
+					cascadeOperation.set(instructions).execute();				
 					isCascadeExecuted = true;
 					state = OperationState.RELATIONS_SAVED;
 				}
 				T entityUpdate = ObjectCopyUtil.copyEntity(entity);
-				fileCore.writeRegister(classeInternal, entityUpdate, author, instructions);
+				fileCore.writeRegister(classeInternal, entityUpdate, instructions);
 				state = OperationState.ENTITY_WRITED;
-				sequenceUtil.get(TotalChangesPrevalenceSystem.class);
+				sequenceProvider.get(TotalChangesPrevalenceSystem.class);
 				state = OperationState.PREVALENCE_VERSION_UPDATED;
 				memoryCore.updateMemory(classeInternal, OperationType.UPDATE, entityUpdate);
 				state = OperationState.MEMORY_UPDATED;
@@ -98,7 +91,7 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 				memoryCore.updateMemory(classeInternal, OperationType.UPDATE, oldEntity);
 			}
 			case ENTITY_WRITED: {
-				fileCore.writeRegister(classeInternal, oldEntity, author, instructions);
+				fileCore.writeRegister(classeInternal, oldEntity, instructions);
 			}
 			case RELATIONS_SAVED: {
 				if (isCascadeExecuted) {

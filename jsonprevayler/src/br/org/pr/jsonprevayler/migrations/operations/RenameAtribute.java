@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import br.org.pr.jsonprevayler.PrevalentJsonRepository;
+import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.migrations.MigrationInstruction;
 
@@ -14,7 +14,7 @@ public class RenameAtribute extends MigrationExecuter {
 	private String actualAtributeName = null;
 	private String newAtributeName = null;
 	
-	public RenameAtribute(MigrationInstruction migrationInstruction, PrevalentJsonRepository prevalence) {
+	public RenameAtribute(MigrationInstruction migrationInstruction, PrevalentRepository prevalence) {
 		super(migrationInstruction, prevalence);
 	}
 
