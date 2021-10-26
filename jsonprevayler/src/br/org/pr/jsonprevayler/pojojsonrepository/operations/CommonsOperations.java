@@ -6,14 +6,26 @@ import java.util.logging.Logger;
 import br.org.pr.jsonprevayler.annotations.MappedSuperClassPrevalenceRepository;
 import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
+import br.org.pr.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.org.pr.jsonprevayler.infrastrutuctre.normalization.JsonSerializationInstructions;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.FileCore;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.MemoryCore;
 
 public class CommonsOperations <T extends PrevalenceEntity> {
 
+	protected MemoryCore memoryCore;
+	protected FileCore fileCore;
+	protected SequenceProvider sequenceProvider;	
 	protected Logger log = Logger.getLogger(getClass().getName());
+
+	void setCore(MemoryCore memoryCore, FileCore fileCore, SequenceProvider sequenceProvider) {
+		this.memoryCore = memoryCore;
+		this.fileCore = fileCore;
+		this.sequenceProvider = sequenceProvider;
+	}	
 	
 	@SuppressWarnings("unchecked")
-	protected Class<T> getClassRepository(Class<? extends PrevalenceEntity> classe) throws ValidationPrevalenceException {
+	Class<T> getClassRepository(Class<? extends PrevalenceEntity> classe) throws ValidationPrevalenceException {
 		if (classe.isAnnotationPresent(MappedSuperClassPrevalenceRepository.class)) {
 			MappedSuperClassPrevalenceRepository mappingAnnotation = classe.getAnnotation(MappedSuperClassPrevalenceRepository.class);
 			if (mappingAnnotation.mapping() == null) {
@@ -25,7 +37,7 @@ public class CommonsOperations <T extends PrevalenceEntity> {
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected void validateAllRelationsPersisted(JsonSerializationInstructions instructions) throws ValidationPrevalenceException {
+	void validateAllRelationsPersisted(JsonSerializationInstructions instructions) throws ValidationPrevalenceException {
 		List<T> values = (List<T>) instructions.getPrevalentObjects();
 		for (T entityLoop : values) {
 			if (entityLoop.getId() == null) {
@@ -34,7 +46,7 @@ public class CommonsOperations <T extends PrevalenceEntity> {
 		}
 	}	
 	
-	protected boolean isPrevalentInstances(List<?> result) {
+	boolean isPrevalentInstances(List<?> result) {
 		if (result == null) {
 			return false;
 		}

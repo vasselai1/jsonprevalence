@@ -1,13 +1,13 @@
 package br.org.pr.jsonprevayler.migrations;
 
-import br.org.pr.jsonprevayler.PrevalentJsonRepository;
+import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.migrations.operations.MigrationExecuter;
 import br.org.pr.jsonprevayler.migrations.operations.RenameEntity;
 
 public class MigrationOperationFactory {
 
-	public static MigrationExecuter getOperationExecuter(MigrationInstruction migrationInstruction, PrevalentJsonRepository prevalence) throws ValidationPrevalenceException {
+	public static MigrationExecuter getOperationExecuter(MigrationInstruction migrationInstruction, PrevalentRepository prevalence) throws ValidationPrevalenceException {
 		if (migrationInstruction == null) {
 			throw new ValidationPrevalenceException("MigrationInstruction is null!");
 		}

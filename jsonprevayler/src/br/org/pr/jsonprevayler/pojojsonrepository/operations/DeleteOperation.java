@@ -20,23 +20,16 @@ import br.org.pr.jsonprevayler.pojojsonrepository.core.OperationType;
 
 public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperations<T> implements ComandOperationInterface {
 
-	private final MemoryCore memoryCore;
-	private final FileCore fileCore;
-	private final SequenceProvider sequenceProvider;
 	private T entity;
 	private Class<T> classeInternal;
-	private String author;
 	private OperationState state = OperationState.INITIALIZED;
 	
 	public DeleteOperation(MemoryCore memoryCore, FileCore fileCore, SequenceProvider sequenceProvider) {
-		this.memoryCore = memoryCore;
-		this.fileCore = fileCore;
-		this.sequenceProvider = sequenceProvider;
+		setCore(memoryCore, fileCore, sequenceProvider);
 	}
 
-	public DeleteOperation<T> set(T entity, String author) {
+	public DeleteOperation<T> set(T entity) {
 		this.entity = entity;
-		this.author = author;
 		return this;
 	}
 	
@@ -83,18 +76,17 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 	@Override
 	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException {
 		switch (state) {
-		case MEMORY_UPDATED: {
-			memoryCore.updateMemory(classeInternal, OperationType.SAVE, entity);
+			case MEMORY_UPDATED: {
+				memoryCore.updateMemory(classeInternal, OperationType.SAVE, entity);
+			}
+			case ENTITY_WRITED: {
+				JsonSerializationInstructions instructions = PrevalentAtributesValuesIdentificator.getJsonSerializationInstructions(entity);
+				fileCore.writeRegister(classeInternal, entity, instructions);
+			}
+			default: { 
+				break;
+			}
 		}
-		case ENTITY_WRITED: {
-			JsonSerializationInstructions instructions = PrevalentAtributesValuesIdentificator.getJsonSerializationInstructions(entity);
-			fileCore.writeRegister(classeInternal, entity, author, instructions);
-		}
-		default: { 
-			break;
-		}
-	}		
-		
-	}	
+	}
 	
 }

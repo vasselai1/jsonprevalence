@@ -16,6 +16,7 @@ import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.infrastrutuctre.PrevalenceChangeObserver;
 import br.org.pr.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.FileCore;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.InitializationMemoryCoreType;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.MemoryCore;
 import br.org.pr.jsonprevayler.searchfilter.PrevalenceFilter;
 import br.org.pr.jsonprevayler.searchfilter.processing.SearchProcessor;
@@ -31,7 +32,8 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	private final FilterOperation<T> filterOperation;
 	private final JoSqlOperation<T> joSqlOperation;
 
-	public OperationsControler(String prevalencePath, String systemName, SearchProcessor searchProcessor) {
+	public OperationsControler(String prevalencePath, String systemName, SearchProcessor searchProcessor, InitializationMemoryCoreType initializationMemoryCoreType) {
+		MemoryCore.setInitializationType(initializationMemoryCoreType);
 		fileCore = new FileCore(prevalencePath, systemName);
 		memoryCore = new MemoryCore(fileCore);
 		sequenceProvider = new SequenceProvider(fileCore.getSystemPath());		
@@ -43,37 +45,27 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	}
 
 	public void save(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, InternalPrevalenceException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, DeprecatedPrevalenceEntityVersionException {
-		saveOperation.set(entity, null, false).execute();
-	}
-	public void save(T entity, String author) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, InternalPrevalenceException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException {
-		saveOperation.set(entity, author, false).execute();
+		saveOperation.set(entity, false).execute();
 	}
 	public void saveDeep(T entity) throws ValidationPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchAlgorithmException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException {
-		saveOperation.set(entity, null, true).execute();
-	}
-	public void saveDeep(T entity, String author) throws ValidationPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchAlgorithmException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException {
-		saveOperation.set(entity, author, true).execute();
+		saveOperation.set(entity, true).execute();
 	}
 	
 	public void update(T entity) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException {
-		updateOperation.set(entity, null, false).execute();
-	}
-	public  void update(T entity, String author) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException {
-		updateOperation.set(entity, author,false).execute();
+		updateOperation.set(entity, false).execute();
 	}
 	public  void updateDeep(T entity) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException {
-		updateOperation.set(entity, null, true).execute();
+		updateOperation.set(entity, true).execute();
 	}	
-	public  void updateDeep(T entity, String author) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException {
-		updateOperation.set(entity, author, true).execute();
-	}
 	
 	public void delete(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InternalPrevalenceException {
-		deleteOperation.set(entity, null).execute();
+		deleteOperation.set(entity).execute();
 	}
 	
-	public void execute(CustomOperation customOperation)  throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException {
-		
+	public <Z extends CustomOperation> Z newAtomicOperation(Class<Z> classeCustomOperation)  throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, InstantiationException, NoSuchMethodException {
+		Z customOperation = classeCustomOperation.getDeclaredConstructor().newInstance();
+		customOperation.initialize(sequenceProvider, memoryCore, fileCore);
+		return customOperation;
 	}
 	
 	public Integer count(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException {

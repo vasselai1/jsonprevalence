@@ -102,7 +102,7 @@ public class FileCore {
 		return dirPathEntities;
 	}
 	
-	public <T extends PrevalenceEntity> void writeRegister(Class<T> classe, T entity, String author, JsonSerializationInstructions instructions) throws IOException, NoSuchAlgorithmException {
+	public <T extends PrevalenceEntity> void writeRegister(Class<T> classe, T entity, JsonSerializationInstructions instructions) throws IOException, NoSuchAlgorithmException {
 		OperationType operationType = OperationType.UPDATE;
 		File dirPathClassName = getFilePath(classe);
 		File fileRegister = new File(dirPathClassName, getFileRegisterName(classe, entity.getId()));
@@ -120,7 +120,7 @@ public class FileCore {
 		}
 		String json = serializer.deepSerialize(entity);		
 		Files.write(fileRegister.toPath(), json.getBytes());
-		HistoryJornalWriter.writeHistory(fileRegister, author);
+		HistoryJornalWriter.writeHistory(fileRegister);
 		HistoryJornalWriter.appendJournal(getFilePath(classe), operationType, entity.getId(), json);
 	}
 	

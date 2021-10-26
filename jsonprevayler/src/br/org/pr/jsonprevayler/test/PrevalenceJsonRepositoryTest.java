@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import br.org.pr.jsonprevayler.PrevalentJsonRepository;
+import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.search.AbstractPrevalenceFilter;
 import br.org.pr.jsonprevayler.search.ProgressSearchObserver;
 import br.org.pr.jsonprevayler.test.entity.User;
@@ -18,7 +18,7 @@ class PrevalenceJsonRepositoryTest {
 	
 	//@Test
 	void testSaveList() throws Exception {
-		PrevalentJsonRepository<User> prevalence = new PrevalentJsonRepository<User>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+		PrevalentRepository<User> prevalence = new PrevalentRepository<User>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
 		
 		User usuario = new User();
 		usuario.setName("Ricardo Vasselai Teste");
@@ -37,7 +37,7 @@ class PrevalenceJsonRepositoryTest {
 			}
 
 			@Override
-			public void setPrevalenceInstance(PrevalentJsonRepository pojoJsonRepository) {
+			public void setPrevalenceInstance(PrevalentRepository pojoJsonRepository) {
 			}
 
 			@Override
@@ -57,7 +57,7 @@ class PrevalenceJsonRepositoryTest {
 
 	//@Test
 	void testUpdateList() throws Exception {
-		PrevalentJsonRepository<User> prevalence = new PrevalentJsonRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+		PrevalentRepository<User> prevalence = new PrevalentRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
 	
 		User user = prevalence.getPojo(User.class, 1L);
 		user.setName("Outro nome de teste");
@@ -72,7 +72,7 @@ class PrevalenceJsonRepositoryTest {
 			}
 
 			@Override
-			public void setPrevalenceInstance(PrevalentJsonRepository pojoJsonRepository) {
+			public void setPrevalenceInstance(PrevalentRepository pojoJsonRepository) {
 			}
 
 			@Override
@@ -92,7 +92,7 @@ class PrevalenceJsonRepositoryTest {
 	
 	//@Test
 	void testDeleteList() throws Exception {
-		PrevalentJsonRepository<User> prevalence = new PrevalentJsonRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+		PrevalentRepository<User> prevalence = new PrevalentRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
 
 		List<User> users = prevalence.listPojo(User.class);
 		System.out.println("Results: " + users.size());
@@ -112,7 +112,7 @@ class PrevalenceJsonRepositoryTest {
 	
 	//@Test
 	void testMemoria() throws Exception {
-		PrevalentJsonRepository<User> prevalence = new PrevalentJsonRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);		
+		PrevalentRepository<User> prevalence = new PrevalentRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);		
 		
 		long initial = System.currentTimeMillis();
 		int count = 1000;
@@ -135,13 +135,13 @@ class PrevalenceJsonRepositoryTest {
 	
 	@Test
 	void testList() throws Exception {
-		PrevalentJsonRepository<User> prevalence = new PrevalentJsonRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+		PrevalentRepository<User> prevalence = new PrevalentRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
 		System.out.println(prevalence.listJson(User.class));
 	}
 	
 	@Test
 	void testListPojo() throws Exception {
-		PrevalentJsonRepository<User> prevalence = new PrevalentJsonRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+		PrevalentRepository<User> prevalence = new PrevalentRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
 		System.out.println(prevalence.listPojo(User.class));
 	}	
 	
