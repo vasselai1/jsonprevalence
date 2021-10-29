@@ -42,6 +42,13 @@ public class FileCore {
 		return systemPath;
 	}
 	
+	public <T extends PrevalenceEntity> T readRegistry(Class<T> classe, Long id) throws IOException {
+		JSONDeserializer<T> deserializer = new JSONDeserializer<T>();
+		File dirPathClassName = getFilePath(classe);
+		File dataFile = new File(dirPathClassName, getFileRegisterName(classe, id));
+		return deserializer.deserialize(Files.readString(dataFile.toPath()));
+	}
+	
 	public <T extends PrevalenceEntity> List<T> readRegistries(Class<T> classe) throws IOException {
 		List<T> retorno = new ArrayList<T>();
 		JSONDeserializer<T> deserializer = new JSONDeserializer<T>();
@@ -76,8 +83,7 @@ public class FileCore {
 	}
 	
 	public File getFilePath(String canonicalClassEntityName) throws IOException {
-		File systemDir = getSystemFileDir();
-		File dirPathEntities = getPrevalenceDir(systemDir);
+		File dirPathEntities = getPrevalenceDir();
 		File dirPathClassName = new File(dirPathEntities, canonicalClassEntityName);
 		if (!dirPathClassName.exists()) {
 			log.info("Json Prevacelence for " + canonicalClassEntityName + " initialized in " + dirPathClassName.getAbsolutePath());
@@ -94,8 +100,8 @@ public class FileCore {
 		return systemDir;
 	}
 
-	public File getPrevalenceDir(File systemDir) {
-		File dirPathEntities = new File(systemDir, "PREVALENCE");
+	public File getPrevalenceDir() {
+		File dirPathEntities = new File(getSystemFileDir(), "PREVALENCE");
 		if (!dirPathEntities.exists()) {
 			dirPathEntities.mkdir();
 		}

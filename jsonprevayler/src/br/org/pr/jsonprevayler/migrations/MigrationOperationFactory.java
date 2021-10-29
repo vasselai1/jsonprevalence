@@ -3,7 +3,7 @@ package br.org.pr.jsonprevayler.migrations;
 import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.migrations.operations.MigrationExecuter;
-import br.org.pr.jsonprevayler.migrations.operations.RenameEntity;
+import br.org.pr.jsonprevayler.migrations.operations.RenameClass;
 
 public class MigrationOperationFactory {
 
@@ -14,8 +14,8 @@ public class MigrationOperationFactory {
 		if ((migrationInstruction.getOperation() == null) || (migrationInstruction.getOperation().trim().isEmpty())) {
 			throw new ValidationPrevalenceException("Operation is not seted in migrationInstruction!");
 		}
-		if (RenameEntity.class.getSimpleName().equals(migrationInstruction.getOperation())) {
-			return new RenameEntity(migrationInstruction, prevalence);
+		if (RenameClass.class.getSimpleName().equals(migrationInstruction.getOperation())) {
+			return new RenameClass(migrationInstruction, prevalence);
 		}
 		
 		throw new ValidationPrevalenceException(migrationInstruction.toString() + " Invalid Operation!");

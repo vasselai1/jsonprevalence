@@ -69,5 +69,10 @@ public class CascadeOperation <T extends PrevalenceEntity> implements ComandOper
 		}
 	}
 
+	@Override
+	public <T extends PrevalenceEntity> T getEntity() {
+		return null;
+	}
+
 
 }

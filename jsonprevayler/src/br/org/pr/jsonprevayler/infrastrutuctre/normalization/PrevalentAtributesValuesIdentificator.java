@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
@@ -17,13 +19,6 @@ import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 public class PrevalentAtributesValuesIdentificator {
 	
 	private static final List<MappingType> MAPPINGS_TO_GET_OBJECTS = Arrays.asList(MappingType.ENTITY, MappingType.ENTITY_COLLECTION, MappingType.ENTITY_MAP);
-	
-	public enum MappingType {
-		NONE,
-		ENTITY_COLLECTION,
-		ENTITY_MAP,
-		ENTITY;
-	}  
 	
 	public static <T extends PrevalenceEntity> JsonSerializationInstructions getJsonSerializationInstructions(T entity) throws ValidationPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		List<String> ignores = new ArrayList<String>();
@@ -38,7 +33,7 @@ public class PrevalentAtributesValuesIdentificator {
 		for (Method method : listPojoGets(entity.getClass())) {
 			String atributeName = getAtributeName(method);
 			Field field = entity.getClass().getDeclaredField(atributeName);
-			MappingType mapType = getMappingType(entity, method, field);
+			MappingType mapType = getMappingType(method, field);
 			if (MAPPINGS_TO_GET_OBJECTS.contains(mapType)) {
 				prevalentObjects.addAll(getPrevalentObjetcs(entity, method));
 			}
@@ -56,7 +51,7 @@ public class PrevalentAtributesValuesIdentificator {
 	} 
 	
 	@SuppressWarnings({ "rawtypes" })
-	public static MappingType getMappingType(Object entity, Method method, Field field) throws ValidationPrevalenceException, ClassNotFoundException {
+	public static MappingType getMappingType(Method method, Field field) throws ValidationPrevalenceException, ClassNotFoundException {
 		String atributeName = getAtributeName(method);
 		Class returnType = method.getReturnType();
 		if (Map.class.isAssignableFrom(returnType)) {
@@ -85,6 +80,17 @@ public class PrevalentAtributesValuesIdentificator {
 	}
 
 	@SuppressWarnings({ "rawtypes" })
+	public static Class getClassForCollection(Class returnType, Field field) throws ClassNotFoundException {
+		ParameterizedType parametrizedType = (ParameterizedType) field.getGenericType();
+		if (parametrizedType.getActualTypeArguments().length >= 1) {
+			Type type = parametrizedType.getActualTypeArguments()[0];
+			Class testClass = Class.forName(type.getTypeName());
+			return testClass;			
+		}
+		return null;
+	}	
+	
+	@SuppressWarnings({ "rawtypes" })
 	public static MappingType getMappintTypeForMap(String atributeName, Class returnType, Field field) throws ValidationPrevalenceException, ClassNotFoundException {
 		ParameterizedType parametrizedType = (ParameterizedType) field.getGenericType();
 		if (parametrizedType.getActualTypeArguments().length >= 2) {
@@ -101,6 +107,18 @@ public class PrevalentAtributesValuesIdentificator {
 		}
 		return MappingType.NONE;
 	}
+
+	@SuppressWarnings({ "rawtypes" })
+	public static Class getClassForMap(Class returnType, Field field) throws ValidationPrevalenceException, ClassNotFoundException {
+		ParameterizedType parametrizedType = (ParameterizedType) field.getGenericType();
+		if (parametrizedType.getActualTypeArguments().length >= 2) {
+			Type typeValue = parametrizedType.getActualTypeArguments()[1];
+			Class testValueClass = Class.forName(typeValue.getTypeName());
+			return testValueClass;
+		}
+		return null;
+	}
+	
 	
 	@SuppressWarnings("rawtypes")
 	public static void validateAutoRelation(Class classConfirm, List<Class> visitedClasses, Class firstClass) throws ValidationPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException {		
@@ -196,5 +214,60 @@ public class PrevalentAtributesValuesIdentificator {
 		}
 		return new ArrayList<T>();
 	} 
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T extends PrevalenceEntity> Set<Class<T>> listPrevalenceRelations(Class<T> classe) throws ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException {
+		Set<Class<T>> prevalenceRelations = new TreeSet<Class<T>>();
+		for (Method method : listPojoGets(classe.getClass())) {
+			String atributeName = getAtributeName(method);
+			Field field = classe.getDeclaredField(atributeName);
+			Class returnType = method.getReturnType();
+			MappingType mapType = getMappingType(method, field);
+			if (MappingType.NONE.equals(mapType)) {
+				continue;
+			}
+			if (PrevalenceEntity.class.isAssignableFrom(returnType)) {
+				prevalenceRelations.add((Class<T>) returnType);
+				continue;
+			}
+			Class testClass = null;
+			if (Map.class.isAssignableFrom(returnType)) {
+				testClass = getClassForMap(returnType, field);
+			}
+			if (Collection.class.isAssignableFrom(returnType)) {
+				testClass = getClassForCollection(returnType, field);
+			}
+			if (PrevalenceEntity.class.isAssignableFrom(testClass)) {
+				prevalenceRelations.add((Class<T>) testClass);
+				continue;
+			}
+		}
+		return prevalenceRelations;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static <T extends PrevalenceEntity> List<LoadInstruction> getLoadInstructions(T entity) throws NoSuchFieldException, SecurityException, ClassNotFoundException, ValidationPrevalenceException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		validateAutoRelation(entity.getClass(), null, null);
+		List<LoadInstruction> loadInstructions = new ArrayList<LoadInstruction>();
+		Class classe = entity.getClass(); 
+		for (Method getMethod : listPojoGets(classe)) {
+			String atributeName = getAtributeName(getMethod);
+			Field field = classe.getDeclaredField(atributeName);			
+			MappingType mappingType = getMappingType(getMethod, field);
+			if (MAPPINGS_TO_GET_OBJECTS.contains(mappingType)) {
+				Method setMethod = getSetMethod(classe, getMethod);
+				Object originalValue = getMethod.invoke(entity);
+				loadInstructions.add(new LoadInstruction(atributeName, field, mappingType, getMethod, setMethod, originalValue));
+			}
+		}
+		return loadInstructions;
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static Method getSetMethod(Class classe, Method getMethod) throws NoSuchMethodException, SecurityException {
+		Class<?> returnTypeClass = getMethod.getReturnType();
+		String methodSetName = getMethod.getName().replace("get", "set");
+		return classe.getDeclaredMethod(methodSetName, returnTypeClass);
+	}
 	
 }

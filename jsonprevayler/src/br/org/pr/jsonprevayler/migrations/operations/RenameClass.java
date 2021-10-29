@@ -8,14 +8,14 @@ import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.migrations.MigrationInstruction;
 
-public class RenameEntity extends MigrationExecuter {
+public class RenameClass extends MigrationExecuter {
 
 	private String actualQualifiedClassNameOfPojoEntity = null;
 	private String newQualifiedClassNameOfPojoEntity = null;
 	private String actualFilesPrefix = null;
 	private String newFilesPrexis = null; 
 	
-	public RenameEntity(MigrationInstruction migrationInstruction, PrevalentRepository prevalence) {
+	public RenameClass(MigrationInstruction migrationInstruction, PrevalentRepository prevalence) {
 		super(migrationInstruction, prevalence);
 	}
 

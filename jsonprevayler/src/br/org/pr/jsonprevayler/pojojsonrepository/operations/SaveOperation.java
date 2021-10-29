@@ -84,7 +84,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 				state = OperationState.ENTITY_WRITED;
 				sequenceProvider.get(TotalChangesPrevalenceSystem.class);
 				state = OperationState.PREVALENCE_VERSION_UPDATED;
-				memoryCore.updateMemory(classeInternal, OperationType.SAVE, entitySave);
+				memoryCore.updateMemory(classeInternal, OperationType.SAVE, entitySave, deepSave);
 				state = OperationState.MEMORY_UPDATED;
 			} catch (Exception e) {
 				undo();
@@ -96,7 +96,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException {
 		switch (state) {
 			case MEMORY_UPDATED: {
-				memoryCore.updateMemory(classeInternal, OperationType.DELETE, entity);
+				memoryCore.updateMemory(classeInternal, OperationType.DELETE, entity, deepSave);
 			}
 			case ENTITY_WRITED: {
 				fileCore.deleteRegister(classeInternal, entity.getId());
@@ -115,4 +115,10 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 		}
 	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	public T getEntity() {
+		return entity;
+	}
+	
 }

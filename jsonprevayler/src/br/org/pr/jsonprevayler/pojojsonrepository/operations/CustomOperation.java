@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import br.org.pr.jsonprevayler.entity.VersionedEntity;
 import br.org.pr.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionException;
 import br.org.pr.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
@@ -34,6 +35,9 @@ public abstract class CustomOperation {
 		}
 		if (!(operation instanceof CommonsOperations)) {
 			throw new ValidationPrevalenceException("Invalid Operation!");
+		}
+		if (!(operation.getEntity() instanceof VersionedEntity)) {
+			throw new ValidationPrevalenceException("Entity isn't Versioned!");
 		}
 		((CommonsOperations) operation).setCore(memoryCore, fileCore, sequenceProvider);		
 		operation.execute();

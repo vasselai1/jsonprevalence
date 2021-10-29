@@ -12,19 +12,21 @@ import java.util.List;
 import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
+import br.org.pr.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.FileCore;
 
 public class IntegrityInspector {
 
-	private String path;
-	private String systemName; 
+	private final PrevalenceConfigurator prevalenceConfigurator;
+	private final FileCore fileCore; 
 	
-	public IntegrityInspector(String path, String systemName) {
-		this.path = path;
-		this.systemName = systemName;
+	public IntegrityInspector(PrevalenceConfigurator prevalenceConfigurator) {
+		this.prevalenceConfigurator = prevalenceConfigurator;
+		fileCore = new FileCore(prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getSystemName());
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends PrevalenceEntity> List<? extends PrevalenceEntity> listPrevalentRelations(T entity) throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public <T extends PrevalenceEntity> List<? extends PrevalenceEntity> listPrevalentRelations(T entity) throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, InterruptedException {
 		List<T> directRelations = new ArrayList<>();
 		List<Class<? extends PrevalenceEntity>> prevalentClasses = listAllPrevalentClasses();
 		prevalentClasses = filterClasses(entity.getClass(), prevalentClasses);
@@ -34,7 +36,7 @@ public class IntegrityInspector {
 		return directRelations;
 	}
 
-	public <T extends PrevalenceEntity> void validateExcluision(T entity)  throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public <T extends PrevalenceEntity> void validateExcluision(T entity)  throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, InterruptedException {
 		List<? extends PrevalenceEntity> relations = listPrevalentRelations(entity);
 		if (relations.isEmpty()) {
 			return;
@@ -43,9 +45,9 @@ public class IntegrityInspector {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private <T extends PrevalenceEntity> List<? extends PrevalenceEntity> filterEntities(T entity, Class<? extends PrevalenceEntity> classePrevalent) throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	private <T extends PrevalenceEntity> List<? extends PrevalenceEntity> filterEntities(T entity, Class<? extends PrevalenceEntity> classePrevalent) throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, InterruptedException {
 		List<T> prevalentClassesForEntity = new ArrayList<>();
-		PrevalentRepository prevalentLoop = new PrevalentRepository(path, systemName);
+		PrevalentRepository prevalentLoop = new PrevalentRepository(prevalenceConfigurator);
 		List<? extends PrevalenceEntity> allEntities = prevalentLoop.listPojo(classePrevalent);
 		for (PrevalenceEntity entityLoop : allEntities) {
 			JsonSerializationInstructions serializationInstrucions = PrevalentAtributesValuesIdentificator.getJsonSerializationInstructions(entityLoop);
@@ -62,9 +64,8 @@ public class IntegrityInspector {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private List<Class<? extends PrevalenceEntity>> listAllPrevalentClasses() {
-		PrevalentRepository prevalentSystem = new PrevalentRepository<PrevalenceEntity>(path, systemName);
-		File prevalenceDir = prevalentSystem.getPrevalenceDir(prevalentSystem.getSystemFileDir());		
+	private List<Class<? extends PrevalenceEntity>> listAllPrevalentClasses() {		
+		File prevalenceDir = fileCore.getPrevalenceDir();		
 		List<Class<? extends PrevalenceEntity>> prevalentClasses = new ArrayList<>();
 		for (File directoryLoop : prevalenceDir.listFiles()) {
 			if (!directoryLoop.isDirectory()) {
