@@ -36,6 +36,7 @@ public abstract class CustomOperation {
 		if (!(operation instanceof CommonsOperations)) {
 			throw new ValidationPrevalenceException("Invalid Operation!");
 		}
+
 		if (!(operation.getEntity() instanceof VersionedEntity)) {
 			throw new ValidationPrevalenceException("Entity isn't Versioned!");
 		}

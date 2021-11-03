@@ -94,5 +94,5 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 	public T getEntity() {
 		return entity;
 	}
-	
+
 }

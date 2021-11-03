@@ -49,7 +49,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 		return initilizationType;
 	}
 	
-	public <T extends PrevalenceEntity> void initilize(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public <T extends PrevalenceEntity> void initialize(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		log.info("Initilizing Prevalence for " + classe.getCanonicalName());
 		long initial = System.currentTimeMillis();
 		updateMemory(classe, OperationType.INITIALIZE, null, false);		
@@ -61,6 +61,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 	}
 	
 	public <T extends PrevalenceEntity> void updateMemory(Class<T> classe, OperationType operationType, T entity, boolean deep) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+
 		if (initilizationType == null) {
 			throw new ValidationPrevalenceException("Initialization Type don't seted!");
 		}
@@ -74,6 +75,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 					initPrevalence(classe, serializer);					
 				}
 			}
+
 		}
 		if (OperationType.INITIALIZE.equals(operationType)) {
 			return;
@@ -106,7 +108,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 		sendOperationInfo(operationType, classe, entity.getId());
 	}
 
-	private <T extends PrevalenceEntity> void initPrevalence(Class<T> classe, JSONSerializer serializer) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	private <T extends PrevalenceEntity> void initPrevalence(Class<T> classe, JSONSerializer serializer) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		classe = getClassRepository(classe);
 		pojoRepository.put(classe, new HashMap<Long, PrevalenceEntity>());
 		jsonRepository.put(classe, new HashMap<Long, String>());			
@@ -123,48 +125,49 @@ public class MemoryCore implements MemorySearchEngineInterface {
 	}	
 	
 	@Override
-	public <T extends PrevalenceEntity> Integer count(Class<T> classe) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
+	public <T extends PrevalenceEntity> Integer count(Class<T> classe) throws ValidationPrevalenceException, ClassNotFoundException, IOException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		classe = getClassRepository(classe);
-		initilize(classe);
+		initialize(classe);
 		return pojoRepository.get(classe).size();
 	}		
 	
 	@SuppressWarnings("unchecked")
-	public <T extends PrevalenceEntity> T getPojo(Class<T> classe, Long id) throws IOException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public <T extends PrevalenceEntity> T getPojo(Class<T> classe, Long id) throws IOException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		classe = getClassRepository(classe);
-		initilize(classe);
+		initialize(classe);
 		return (T) ObjectCopyUtil.copyEntity(pojoRepository.get(classe).get(id));
 	}	
 	
-	public <T extends PrevalenceEntity> String getJson(Class<T> classe, Long id) throws IOException, ValidationPrevalenceException {
+	public <T extends PrevalenceEntity> String getJson(Class<T> classe, Long id) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
 		classe = getClassRepository(classe);
-		initilize(classe);
+		initialize(classe);
 		if (InitializationMemoryCoreType.POJO_AND_ENUM.equals(initilizationType)) {
 			return jsonRepository.get(classe).get(id);
 		}
 		return new JSONSerializer().deepSerialize(pojoRepository.get(classe).get(id));
 	}
 	
-	public <T extends PrevalenceEntity> String listJson(Class<T> classe) throws IOException, ValidationPrevalenceException {
+	public <T extends PrevalenceEntity> String listJson(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		classe = getClassRepository(classe);
-		initilize(classe);
+		initialize(classe);
 		if (InitializationMemoryCoreType.POJO_AND_ENUM.equals(initilizationType)) {
 			return new JSONSerializer().serialize(jsonRepository.get(classe).values());
 		}
 		return new JSONSerializer().serialize(pojoRepository.values());
 	}	
 	
-	private <T extends PrevalenceEntity> void initializePrevalentRelations(Class<T> classe) throws ClassNotFoundException, NoSuchFieldException, SecurityException, ValidationPrevalenceException, IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	private <T extends PrevalenceEntity> void initializePrevalentRelations(Class<T> classe) throws ClassNotFoundException, NoSuchFieldException, SecurityException, ValidationPrevalenceException, IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		Set<Class<T>> prevalenceRelations = PrevalentAtributesValuesIdentificator.listPrevalenceRelations(classe);
 		for (Class<T> classeInitializeLoop : prevalenceRelations) {
 			Class<T> classeInitilize = getClassRepository(classeInitializeLoop);
 			if (pojoRepository.containsKey(classeInitilize)) {
 				continue;
 			}
-			initilize(classeInitilize);
+			initialize(classeInitilize);
 		}
 	}	
 
+	@SuppressWarnings("unchecked")
 	private <T extends PrevalenceEntity> void loadPrevalentObjetcs(Class<T> classe) throws ValidationPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		classe = getClassRepository(classe);
 		Collection<T> objectsVerify = (Collection<T>) pojoRepository.get(classe).values();
@@ -203,47 +206,22 @@ public class MemoryCore implements MemorySearchEngineInterface {
 	private <T extends PrevalenceEntity> void reSetMap(T entity, LoadInstruction loadInstruction) {
 		
 	}
+
 	
-	private <T extends PrevalenceEntity> T reloadEntity(T entityOld) throws NoSuchFieldException, SecurityException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException {
-		Class<T> classe = getClassRepository(entityOld.getClass());
-		T updatedEntity = fileCore.readRegistry(classe, entityOld.getId());
-		//recarrega o grafo que pode ter sido atualizado
-		List<LoadInstruction> loadInstructions = PrevalentAtributesValuesIdentificator.getLoadInstructions(entityOld);		
-		for (LoadInstruction loadInstruction : loadInstructions) {
-			//TODO carregar recursivamente, cuidado com os locks..·
-			if (MappingType.ENTITY.equals(loadInstruction.getMappingType())) {
-				T entityToReload = (T) loadInstruction.getOriginalValue();
-				if (entityToReload == null) {
-					continue;
-				}
-				reloadEntity(entityToReload);
-				loadInstruction.getSetMethod().invoke(updatedEntity, entityToReload);
-			}
-			Collection<T> entiesToReload = null;
-			if (MappingType.ENTITY_COLLECTION.equals(loadInstruction.getMappingType())) {
-				entiesToReload = (Collection<T>) loadInstruction.getOriginalValue();
-			}
-			if (MappingType.ENTITY_MAP.equals(loadInstruction.getMappingType())) {
-				reSetMap(entity, loadInstruction);
-			}
-		}
-		return updatedEntity;
-	}
-	
-	public <T extends PrevalenceEntity> boolean isIdUsed(Class<T> classe, Long id) throws IOException, ValidationPrevalenceException {
-		initilize(classe);
+	public <T extends PrevalenceEntity> boolean isIdUsed(Class<T> classe, Long id) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		initialize(classe);
 		return pojoRepository.get(classe).containsKey(id);
 	}		
 	
 	
-	public <T extends PrevalenceEntity> Collection<Long> getKeys(Class<T> classe) throws IOException, ValidationPrevalenceException {
-		initilize(classe);
+	public <T extends PrevalenceEntity> Collection<Long> getKeys(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		initialize(classe);
 		return pojoRepository.get(classe).keySet();
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends PrevalenceEntity> Collection<T> getValues(Class<T> classe) throws IOException, ValidationPrevalenceException {
-		initilize(classe);
+	public <T extends PrevalenceEntity> Collection<T> getValues(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		initialize(classe);
 		return (Collection<T>) pojoRepository.get(classe).values();
 	}	
 	

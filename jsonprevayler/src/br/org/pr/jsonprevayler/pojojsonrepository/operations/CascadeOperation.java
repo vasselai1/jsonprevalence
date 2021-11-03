@@ -68,11 +68,11 @@ public class CascadeOperation <T extends PrevalenceEntity> implements ComandOper
 			operationLoop.undo();
 		}
 	}
-
+	
 	@Override
-	public <T extends PrevalenceEntity> T getEntity() {
+	@SuppressWarnings("unchecked")
+	public T getEntity() {
 		return null;
 	}
-
 
 }
