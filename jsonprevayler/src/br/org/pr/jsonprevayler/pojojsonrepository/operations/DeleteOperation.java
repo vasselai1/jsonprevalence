@@ -14,7 +14,9 @@ import br.org.pr.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.org.pr.jsonprevayler.infrastrutuctre.normalization.IntegrityInspector;
 import br.org.pr.jsonprevayler.infrastrutuctre.normalization.JsonSerializationInstructions;
 import br.org.pr.jsonprevayler.infrastrutuctre.normalization.PrevalentAtributesValuesIdentificator;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.EntityTokenKey;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.FileCore;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.LockPrevalenceEntityTokenFactory;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.MemoryCore;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.OperationType;
 
@@ -48,8 +50,9 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 			throw new ValidationPrevalenceException("Entity not found!");
 		}
 		new IntegrityInspector(fileCore.getPrevalencePath(), fileCore.getSystemName()).validateExcluision(entity);
-		
-		synchronized (classeInternal) {
+		EntityTokenKey entityToken = LockPrevalenceEntityTokenFactory.get(entity);
+		synchronized (entityToken) {
+			entityToken.setUse("Delete");
 			if (entity instanceof VersionedEntity) {
 				VersionedEntity newVersionedEntity = (VersionedEntity) entity;
 				VersionedEntity oldVersionedEntity = (VersionedEntity) memoryCore.getPojo(classeInternal, entity.getId());
@@ -68,6 +71,8 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 			} catch (Exception e) {
 				undo();
 				throw e;
+			} finally {
+				entityToken.setEnd();
 			}
 		}
 		
