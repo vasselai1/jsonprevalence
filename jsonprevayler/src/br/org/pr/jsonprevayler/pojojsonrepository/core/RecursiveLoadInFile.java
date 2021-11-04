@@ -16,7 +16,7 @@ import br.org.pr.jsonprevayler.infrastrutuctre.normalization.PrevalentAtributesV
 public class RecursiveLoadInFile {
 
 	@SuppressWarnings("unchecked")
-	public static <T extends PrevalenceEntity> T reloadEntityGraph(FileCore fileCore, MemoryCore memoryCore, T entityOld) throws NoSuchFieldException, SecurityException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InstantiationException {
+	public static <T extends PrevalenceEntity> T reloadEntityGraph(FileCore fileCore, MemoryCore memoryCore, T entityOld) throws NoSuchFieldException, SecurityException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InstantiationException, InterruptedException {
 		Class<T> classe = MemoryCore.getClassRepository(entityOld.getClass());
 		T updatedEntity = fileCore.readRegistry(classe, entityOld.getId());
 		List<LoadInstruction> loadInstructions = PrevalentAtributesValuesIdentificator.getLoadInstructions(entityOld);		
