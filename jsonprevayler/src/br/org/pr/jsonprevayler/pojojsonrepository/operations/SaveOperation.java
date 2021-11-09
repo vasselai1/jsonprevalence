@@ -93,7 +93,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 		}
 	}	
 	
-	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException {
+	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchMethodException, InstantiationException, InterruptedException {
 		switch (state) {
 			case MEMORY_UPDATED: {
 				memoryCore.updateMemory(classeInternal, OperationType.DELETE, entity, deepSave);

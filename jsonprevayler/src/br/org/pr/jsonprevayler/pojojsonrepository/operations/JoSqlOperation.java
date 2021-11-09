@@ -1,6 +1,7 @@
 package br.org.pr.jsonprevayler.pojojsonrepository.operations;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -35,16 +36,16 @@ public class JoSqlOperation <T extends PrevalenceEntity> extends CommonsOperatio
 		return query;
 	}
 	
-	public List<?> joSqlQueryList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException {
-		classe = memoryCore.getClassRepository(classe);
+	public List<?> joSqlQueryList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		classe = MemoryCore.getClassRepository(classe);
 		Query query = initQueryJoSql(classe, joSqlQuery, parametersBind);
 		QueryResults queryResults = query.execute(memoryCore.getValues(classe));
 		List<?> result = queryResults.getResults();
 		return returnSercure(classe, result);
 	}
 
-	public List<?> joSqlQueryHavingList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException {
-		classe = memoryCore.getClassRepository(classe);
+	public List<?> joSqlQueryHavingList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		classe = MemoryCore.getClassRepository(classe);
 		Query query = initQueryJoSql(classe, joSqlQuery, parametersBind);
 		QueryResults queryResults = query.execute(memoryCore.getValues(classe));
 		List<?> result = queryResults.getHavingResults();
@@ -60,8 +61,8 @@ public class JoSqlOperation <T extends PrevalenceEntity> extends CommonsOperatio
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException {
-		classe = memoryCore.getClassRepository(classe);
+	public Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		classe = MemoryCore.getClassRepository(classe);
 		Query query = initQueryJoSql(classe, joSqlQuery, parametersBind);
 		QueryResults queryResults = query.execute(memoryCore.getValues(classe));
 		Map result = queryResults.getGroupByResults();

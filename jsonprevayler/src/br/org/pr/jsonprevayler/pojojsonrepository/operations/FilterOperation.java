@@ -1,6 +1,7 @@
 package br.org.pr.jsonprevayler.pojojsonrepository.operations;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,15 +23,13 @@ public class FilterOperation <T extends PrevalenceEntity> {
 		this.searchProcessor = searchProcessor;
 	}
 
-	public Integer count(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException {
-		classe = memoryCore.getClassRepository(classe);
-		memoryCore.initialize(classe);
+	public Integer count(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		classe = MemoryCore.getClassRepository(classe);
 		return memoryCore.count(classe);
 	}
 	
-	public Integer count(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, ValidationPrevalenceException, ClassNotFoundException {
-		classe = memoryCore.getClassRepository(classe);
-		memoryCore.initialize(classe);
+	public Integer count(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		classe = MemoryCore.getClassRepository(classe);
 		List<T> retorno = new ArrayList<T>();
 		searchProcessor.setOnlyCount(true);
 		searchProcessor.setMemorySearchEngine(memoryCore);
@@ -38,11 +37,11 @@ public class FilterOperation <T extends PrevalenceEntity> {
 		return searchProcessor.getTotalFounded();
 	}
 	
-	public String listJson(Class<T> classe) throws IOException, ValidationPrevalenceException {
+	public String listJson(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		return new JSONSerializer().serialize(memoryCore.listJson(classe));
 	}	
 	
-	public List<T> listPojo(Class<T> classe) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException {
+	public List<T> listPojo(Class<T> classe) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
 		return ObjectCopyUtil.copyList(classe, memoryCore.getValues(classe));
 	}	
 	
@@ -50,9 +49,8 @@ public class FilterOperation <T extends PrevalenceEntity> {
 		return listPojo(classe, filter, true);
 	}
 	
-	public String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException {
-		classe = memoryCore.getClassRepository(classe);
-		memoryCore.initialize(classe);
+	public String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
+		classe = MemoryCore.getClassRepository(classe);
 		List<T> filtrados = listPojo(classe, filter, false);
 		List<String> retorno = new ArrayList<String>();
 		for (T entityLoop : filtrados) {
@@ -63,8 +61,7 @@ public class FilterOperation <T extends PrevalenceEntity> {
 	}	
 	
 	private List<T> listPojo(Class<T> classe, PrevalenceFilter<T> filter, boolean secureCopy) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException {
-		classe = memoryCore.getClassRepository(classe);
-		memoryCore.initialize(classe);
+		classe = MemoryCore.getClassRepository(classe);		
 		List<T> retorno = new ArrayList<T>();		
 		searchProcessor.setMemorySearchEngine(memoryCore);
 		searchProcessor.process(classe, filter, retorno);		

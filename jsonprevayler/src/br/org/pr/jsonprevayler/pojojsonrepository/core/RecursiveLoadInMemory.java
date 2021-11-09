@@ -19,11 +19,12 @@ import br.org.pr.jsonprevayler.searchfilter.processing.searchprocessorfactory.Si
 
 public class RecursiveLoadInMemory {
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T extends PrevalenceEntity> void reloadObjectInRelations(FileCore fileCore, MemoryCore memoryCore, T updatedEntity) throws ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, IOException, ValidationPrevalenceException, InterruptedException {
 		//TODO Percorrer indices é mais rapido...
 		PojoPrevalenceConfigurator pojoPrevalenceConfigurator = new PojoPrevalenceConfigurator(new SingleThreadSearchProcessorFactory(), fileCore.getPrevalencePath(), fileCore.getSystemName(), memoryCore.getInitializationMemoryCoreType());
-		List<T> relations = (List<T>) new IntegrityInspector(pojoPrevalenceConfigurator).listPrevalentRelations(updatedEntity);
-		for (T entityToUpdate : relations) {
+		List<PrevalenceEntity> relations = (List<PrevalenceEntity>) new IntegrityInspector(pojoPrevalenceConfigurator).listPrevalentRelations(updatedEntity);
+		for (PrevalenceEntity entityToUpdate : relations) {
 			List<LoadInstruction> loadInstructions = PrevalentAtributesValuesIdentificator.getLoadInstructions(entityToUpdate);
 			for (LoadInstruction loadInstruction : loadInstructions) {
 				List<? extends PrevalenceEntity> entitiesToReplace = getEntityRelationed(loadInstruction, updatedEntity);
@@ -39,13 +40,14 @@ public class RecursiveLoadInMemory {
 					collectionReloaded.addAll(reloadedEntities);
 					loadInstruction.getSetMethod().invoke(updatedEntity, collectionReloaded);
 				}
-				if (MappingType.ENTITY_MAP.equals(loadInstruction.getMappingType())) {
-					Map mapReloaded = (Map) loadInstruction.getGetMethod().getReturnType().getDeclaredConstructor().newInstance();
-					for (PrevalenceEntity entityReloaded : reloadedEntities) {
-						mapReloaded.put(entityReloaded.getId(), entityReloaded);
-					}
-					loadInstruction.getSetMethod().invoke(updatedEntity, mapReloaded);
+				if (!MappingType.ENTITY_MAP.equals(loadInstruction.getMappingType())) {
+					continue;
 				}
+				Map mapReloaded = (Map) loadInstruction.getGetMethod().getReturnType().getDeclaredConstructor().newInstance();
+				for (PrevalenceEntity entityReloaded : reloadedEntities) {
+					mapReloaded.put(entityReloaded.getId(), entityReloaded);
+				}
+				loadInstruction.getSetMethod().invoke(updatedEntity, mapReloaded);
 			}
 		}		
 	}
@@ -59,6 +61,7 @@ public class RecursiveLoadInMemory {
 		return reloadedEntities;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private static <T extends PrevalenceEntity> List<T> getEntityRelationed(LoadInstruction loadInstruction, T updatedEntity) {
 		if (MappingType.ENTITY.equals(loadInstruction.getMappingType())) {
 			T entityToReload = (T) loadInstruction.getOriginalValue();
@@ -96,7 +99,5 @@ public class RecursiveLoadInMemory {
 		}
 		return null;
 	}
-	
-	
 	
 }
