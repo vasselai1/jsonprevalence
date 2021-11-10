@@ -10,20 +10,25 @@ import java.util.Map;
 
 import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
-import br.org.pr.jsonprevayler.infrastrutuctre.configuration.PojoPrevalenceConfigurator;
 import br.org.pr.jsonprevayler.infrastrutuctre.normalization.IntegrityInspector;
 import br.org.pr.jsonprevayler.infrastrutuctre.normalization.LoadInstruction;
 import br.org.pr.jsonprevayler.infrastrutuctre.normalization.MappingType;
 import br.org.pr.jsonprevayler.infrastrutuctre.normalization.PrevalentAtributesValuesIdentificator;
-import br.org.pr.jsonprevayler.searchfilter.processing.searchprocessorfactory.SingleThreadSearchProcessorFactory;
 
 public class RecursiveLoadInMemory {
 
+	private final FileCore fileCore;
+	private final Map<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>> pojoRepository;
+	
+	public RecursiveLoadInMemory(FileCore fileCore, Map<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>> pojoRepository) {
+		this.fileCore = fileCore;
+		this.pojoRepository = pojoRepository;
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T extends PrevalenceEntity> void reloadObjectInRelations(FileCore fileCore, MemoryCore memoryCore, T updatedEntity) throws ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, IOException, ValidationPrevalenceException, InterruptedException {
+	public <T extends PrevalenceEntity> void reloadObjectInRelations(T updatedEntity) throws ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, IOException, ValidationPrevalenceException, InterruptedException {
 		//TODO Percorrer indices é mais rapido...
-		PojoPrevalenceConfigurator pojoPrevalenceConfigurator = new PojoPrevalenceConfigurator(new SingleThreadSearchProcessorFactory(), fileCore.getPrevalencePath(), fileCore.getSystemName(), memoryCore.getInitializationMemoryCoreType());
-		List<PrevalenceEntity> relations = (List<PrevalenceEntity>) new IntegrityInspector(pojoPrevalenceConfigurator).listPrevalentRelations(updatedEntity);
+		List<PrevalenceEntity> relations = (List<PrevalenceEntity>) new IntegrityInspector(fileCore, pojoRepository).listPrevalentRelations(updatedEntity);
 		for (PrevalenceEntity entityToUpdate : relations) {
 			List<LoadInstruction> loadInstructions = PrevalentAtributesValuesIdentificator.getLoadInstructions(entityToUpdate);
 			for (LoadInstruction loadInstruction : loadInstructions) {
@@ -31,7 +36,19 @@ public class RecursiveLoadInMemory {
 				if ((entitiesToReplace == null) || entitiesToReplace.isEmpty()) {
 					continue;
 				}
-				List<? extends PrevalenceEntity> reloadedEntities = reloadAll(entitiesToReplace, memoryCore);
+				ArrayList<PrevalenceEntity> reloadedEntities = new ArrayList<PrevalenceEntity>();
+				for (PrevalenceEntity entityToReload : entitiesToReplace) {//TODO verificar se polimorfismo está ok
+					Class<? extends PrevalenceEntity> classe =  MemoryCore.getClassRepository(entityToReload.getClass());
+					if (!pojoRepository.containsKey(classe)) {
+						throw new RuntimeException("Initialization Error: MemoryCore don't contain " + classe);
+					}
+					PrevalenceEntity entityReloaded = (PrevalenceEntity) pojoRepository.get(classe).get(entityToReload.getId());
+					if (entityReloaded == null) {
+						throw new RuntimeException("Initialization Error: MemoryCore don't contain " + classe + " : " + entityToReload.getId());
+					}
+					reloadObjectInRelations(entityReloaded);
+					reloadedEntities.add(entityReloaded);
+				}
 				if (MappingType.ENTITY.equals(loadInstruction.getMappingType())) {			
 					loadInstruction.getSetMethod().invoke(updatedEntity, reloadedEntities.get(0)); 
 				}
@@ -49,20 +66,12 @@ public class RecursiveLoadInMemory {
 				}
 				loadInstruction.getSetMethod().invoke(updatedEntity, mapReloaded);
 			}
-		}		
-	}
-	
-	private static List<PrevalenceEntity> reloadAll(List<? extends PrevalenceEntity> entitiesToReload, MemoryCore memoryCore) throws ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, ValidationPrevalenceException, InterruptedException {
-		ArrayList<PrevalenceEntity> reloadedEntities = new ArrayList<PrevalenceEntity>();
-		for (PrevalenceEntity entityToReload : entitiesToReload) {						
-			PrevalenceEntity entityReloaded = memoryCore.getPojo(entityToReload.getClass(), entityToReload.getId());
-			reloadedEntities.add(entityReloaded);
 		}
-		return reloadedEntities;
 	}
+
 	
 	@SuppressWarnings("unchecked")
-	private static <T extends PrevalenceEntity> List<T> getEntityRelationed(LoadInstruction loadInstruction, T updatedEntity) {
+	private <T extends PrevalenceEntity> List<T> getEntityRelationed(LoadInstruction loadInstruction, T updatedEntity) {
 		if (MappingType.ENTITY.equals(loadInstruction.getMappingType())) {
 			T entityToReload = (T) loadInstruction.getOriginalValue();
 			entityToReload = getOnlyEqualEntity(updatedEntity, entityToReload);
@@ -90,7 +99,7 @@ public class RecursiveLoadInMemory {
 		return null;
 	}
 
-	private static <T extends PrevalenceEntity> T getOnlyEqualEntity(T updatedEntity, T entityToReload) {
+	private <T extends PrevalenceEntity> T getOnlyEqualEntity(T updatedEntity, T entityToReload) {
 		if (entityToReload == null) {
 			return null;
 		}

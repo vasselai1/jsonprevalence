@@ -145,4 +145,27 @@ public class FileCore {
 		return retorno.toString();
 	}	
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public List<Class<? extends PrevalenceEntity>> listAllPrevalentClasses() {		
+		File prevalenceDir = getPrevalenceDir();		
+		List<Class<? extends PrevalenceEntity>> prevalentClasses = new ArrayList<>();
+		if (prevalenceDir == null) {
+			return prevalentClasses;
+		}
+		for (File directoryLoop : prevalenceDir.listFiles()) {
+			if (!directoryLoop.isDirectory()) {
+				continue;
+			}
+			try {
+				Class classe = Class.forName(directoryLoop.getName());
+				if (PrevalenceEntity.class.isAssignableFrom(classe)) {
+					prevalentClasses.add((Class<? extends PrevalenceEntity>) classe);
+				}
+			} catch (Exception e) {
+				continue;
+			}
+		}		
+		return prevalentClasses;
+	}
+	
 }
