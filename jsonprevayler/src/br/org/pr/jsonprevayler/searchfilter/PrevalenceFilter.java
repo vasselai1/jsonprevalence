@@ -14,6 +14,6 @@ public interface PrevalenceFilter <T extends PrevalenceEntity> {
 	int getFirstResult();
 	int getPageSize();
 	void setTotal(int total);
-	void setMemorySearchEngine(MemorySearchEngineInterface pojoJsonRepository);
+	void setMemorySearchEngine(MemorySearchEngineInterface searchEngine);
 	
 }

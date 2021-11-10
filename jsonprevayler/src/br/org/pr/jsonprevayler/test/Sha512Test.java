@@ -8,7 +8,7 @@ import java.util.Date;
 
 import org.junit.jupiter.api.Test;
 
-import br.org.pr.jsonprevayler.PrevalentRepository.OperationType;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.OperationType;
 import br.org.pr.jsonprevayler.util.HashUtil;
 
 class Sha512Test {

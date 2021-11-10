@@ -4,8 +4,10 @@ import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
 
 public interface ProgressSearchObserver <T extends PrevalenceEntity> {
 
-	void setTotal(int total);
+	void setTotalEntitiesRepository(Integer total);
+	Integer getTotalEntitiesRepository();
 	void addOneProgress();
 	void addFounded(T entity);
+	void sumCountFounded(int unitsFoundeds);
 	
 }

@@ -13,6 +13,7 @@ import br.org.pr.jsonprevayler.annotations.MappedSuperClassPrevalenceRepository;
 import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.infrastrutuctre.PrevalenceChangeObserver;
+import br.org.pr.jsonprevayler.infrastrutuctre.normalization.IntegrityInspector;
 import br.org.pr.jsonprevayler.util.ObjectCopyUtil;
 import flexjson.JSONSerializer;
 
@@ -144,6 +145,10 @@ public class MemoryCore implements MemorySearchEngineInterface {
 		}		
 	}
 	
+	public <T extends PrevalenceEntity> void validateExclusion(T entity)  throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, InterruptedException {
+		new IntegrityInspector(fileCore, pojoRepository).validateExclusion(entity);
+	}
+	
 	@Override
 	public <T extends PrevalenceEntity> Integer count(Class<T> classe) throws ValidationPrevalenceException, ClassNotFoundException, IOException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		classe = getClassRepository(classe);
@@ -178,17 +183,20 @@ public class MemoryCore implements MemorySearchEngineInterface {
 
 	
 	public <T extends PrevalenceEntity> boolean isIdUsed(Class<T> classe, Long id) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		classe = getClassRepository(classe);
 		updateMemory(classe, OperationType.INITIALIZE, null, false);
 		return pojoRepository.get(classe).containsKey(id);
 	}		
 	
 	public <T extends PrevalenceEntity> Collection<Long> getKeys(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		classe = getClassRepository(classe);
 		updateMemory(classe, OperationType.INITIALIZE, null, false);
 		return pojoRepository.get(classe).keySet();
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T extends PrevalenceEntity> Collection<T> getValues(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+		classe = getClassRepository(classe);
 		updateMemory(classe, OperationType.INITIALIZE, null, false);
 		return (Collection<T>) pojoRepository.get(classe).values();
 	}	

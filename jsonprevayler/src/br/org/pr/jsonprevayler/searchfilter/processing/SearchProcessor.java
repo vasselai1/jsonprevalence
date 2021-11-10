@@ -1,6 +1,7 @@
 package br.org.pr.jsonprevayler.searchfilter.processing;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
@@ -13,7 +14,7 @@ public abstract class SearchProcessor {
 
 	protected MemorySearchEngineInterface prevalence;
 	@SuppressWarnings("rawtypes")
-	private ProgressSearchObserver progress;
+	private ProgressSearchObserver progress = new BasicProgressSearchObserver();
 	protected boolean onlyCount = false;
 	protected int totalFounded = 0;
 		
@@ -25,42 +26,32 @@ public abstract class SearchProcessor {
 		this.progress = progress;
 	}
 
-	protected void setTotalCount(Integer total) {
-		if (progress == null) {
-			return;
-		}
-		progress.setTotal(total);
+	protected void setTotalEntitiesRepository(Integer total) {
+		progress.setTotalEntitiesRepository(total);
 	}
 	@SuppressWarnings("unchecked")
 	protected <T extends PrevalenceEntity> void addFounded(T entity) {
-		if (progress == null) {
-			return;
-		}
 		progress.addFounded(entity);
 	}
 	protected void addOneProgress() {
-		if (progress == null) {
-			return;
-		}
 		progress.addOneProgress();
 	}
-	
 	public void setOnlyCount(boolean onlyCount) {
 		this.onlyCount = onlyCount;
 	}
 	
 	protected void addCountFounded() {
-		totalFounded++;
+		progress.sumCountFounded(1);
 	}
 	
 	protected void sumCountFounded(int partialCount) {
-		totalFounded = totalFounded + partialCount;
+		progress.sumCountFounded(partialCount);
 	}	
 	
 	public int getTotalFounded() {
 		return totalFounded;
 	}
 	
-	public abstract <T extends PrevalenceEntity> void process(Class<T> classe, PrevalenceFilter<T> filter, List<T> retorno) throws ClassNotFoundException, IOException, ValidationPrevalenceException;
+	public abstract <T extends PrevalenceEntity> void process(Class<T> classe, PrevalenceFilter<T> filter, List<T> retorno) throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException;
 	
 }

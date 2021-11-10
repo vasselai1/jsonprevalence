@@ -4,8 +4,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
-import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.MemorySearchEngineInterface;
 
 public abstract class PrevalenceSearchFilter <T extends PrevalenceEntity> implements PrevalenceFilter<T> {
 	
@@ -14,7 +14,7 @@ public abstract class PrevalenceSearchFilter <T extends PrevalenceEntity> implem
 	protected int total;
 	protected Comparator<T> comparator;
 	protected Map<Long,Integer> matches = new HashMap<Long, Integer>();
-	protected PrevalentRepository prevalence;
+	protected MemorySearchEngineInterface searchEngine;
 	
 	public PrevalenceSearchFilter(Comparator<T> comparator) {
 		this.comparator = comparator;
@@ -56,7 +56,8 @@ public abstract class PrevalenceSearchFilter <T extends PrevalenceEntity> implem
 			matches.put(id, (1));
 		}
 	}
-	public void setPrevalenceInstance(PrevalentRepository pojoJsonRepository) {
-		this.prevalence = pojoJsonRepository;
+	public void setMemorySearchEngine(MemorySearchEngineInterface searchEngine) {
+		this.searchEngine = searchEngine;
 	}
+	
 }

@@ -34,7 +34,7 @@ public class IntegrityInspector {
 		return directRelations;
 	}
 
-	public <T extends PrevalenceEntity> void validateExcluision(T entity)  throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, InterruptedException {
+	public <T extends PrevalenceEntity> void validateExclusion(T entity)  throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, InterruptedException {
 		List<? extends PrevalenceEntity> relations = listPrevalentRelations(entity);
 		if (relations.isEmpty()) {
 			return;

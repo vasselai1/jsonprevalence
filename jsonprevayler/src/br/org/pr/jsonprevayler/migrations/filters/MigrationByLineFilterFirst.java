@@ -1,7 +1,7 @@
 package br.org.pr.jsonprevayler.migrations.filters;
 
 import br.org.pr.jsonprevayler.entity.MigrationExecution;
-import br.org.pr.jsonprevayler.search.FilterFirst;
+import br.org.pr.jsonprevayler.searchfilter.FilterFirst;
 
 public class MigrationByLineFilterFirst implements FilterFirst<MigrationExecution> {
 

@@ -5,14 +5,14 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Date;
 
-import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.migrations.MigrationInstruction;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.FileCore;
 
 public abstract class MigrationExecuter {
 	
 	protected final String FS = File.separator;
-	protected final PrevalentRepository prevalence;
+	protected final FileCore fileCore;
 	protected final MigrationInstruction migrationInstruction;
 	protected final Date instanciationMoment = new Date();
 	
@@ -23,9 +23,9 @@ public abstract class MigrationExecuter {
 		}
 	};
 	
-	protected MigrationExecuter(MigrationInstruction migrationInstruction, PrevalentRepository prevalence) {
+	protected MigrationExecuter(MigrationInstruction migrationInstruction, FileCore fileCore) {
 		this.migrationInstruction = migrationInstruction;
-		this.prevalence = prevalence;
+		this.fileCore = fileCore;
 	}
 	
 	public void validate() throws IOException, ValidationPrevalenceException {
@@ -52,11 +52,11 @@ public abstract class MigrationExecuter {
 	public  abstract String getDirToSecurityCopy();
 	
 	protected File[] listAllFiles(String canonicalClassEntityName) throws IOException {
-		return prevalence.getFilePath(canonicalClassEntityName).listFiles(jsonFilterFileName);
+		return fileCore.getFilePath(canonicalClassEntityName).listFiles(jsonFilterFileName);
 	}  
 
 	protected File getDir(String canonicalClassEntityName) throws IOException {
-		return prevalence.getFilePath(canonicalClassEntityName);
+		return fileCore.getFilePath(canonicalClassEntityName);
 	}
 	
 	public MigrationInstruction getMigrationInstruction() {

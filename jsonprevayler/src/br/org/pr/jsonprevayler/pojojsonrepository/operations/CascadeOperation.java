@@ -37,7 +37,7 @@ public class CascadeOperation <T extends PrevalenceEntity> implements ComandOper
 	
 	@Override
 	@SuppressWarnings("unchecked")
-	public void execute() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException {
+	public void execute() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, Exception {
 		List<T> values = (List<T>) instructions.getPrevalentObjects();
 		try {
 			for (T entityLoop : values) {
@@ -59,7 +59,7 @@ public class CascadeOperation <T extends PrevalenceEntity> implements ComandOper
 	}
 
 	@Override
-	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException {
+	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, Exception {
 		if (executedsOperations.isEmpty()) {
 			return;
 		} 

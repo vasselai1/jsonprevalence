@@ -11,7 +11,6 @@ import br.org.pr.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionExcep
 import br.org.pr.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.infrastrutuctre.SequenceProvider;
-import br.org.pr.jsonprevayler.infrastrutuctre.normalization.IntegrityInspector;
 import br.org.pr.jsonprevayler.infrastrutuctre.normalization.JsonSerializationInstructions;
 import br.org.pr.jsonprevayler.infrastrutuctre.normalization.PrevalentAtributesValuesIdentificator;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.EntityTokenKey;
@@ -36,7 +35,7 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 	}
 	
 	@Override
-	public void execute() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException {
+	public void execute() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, Exception {
 		if (entity == null) {
 			throw new ValidationPrevalenceException("Entity is null!");
 		}
@@ -49,7 +48,7 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 		if (entity == null) {
 			throw new ValidationPrevalenceException("Entity not found!");
 		}
-		new IntegrityInspector(fileCore.getPrevalencePath(), fileCore.getSystemName()).validateExcluision(entity);
+		memoryCore.validateExclusion(entity);
 		EntityTokenKey entityToken = LockPrevalenceEntityTokenFactory.get(entity);
 		synchronized (entityToken) {
 			entityToken.setUse("Delete");
@@ -79,7 +78,7 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 	}
 
 	@Override
-	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException {
+	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, Exception {
 		switch (state) {
 			case MEMORY_UPDATED: {
 				memoryCore.updateMemory(classeInternal, OperationType.SAVE, entity, false);

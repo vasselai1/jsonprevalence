@@ -1,6 +1,7 @@
 package br.org.pr.jsonprevayler.searchfilter.processing;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -19,14 +20,14 @@ public class MultiThreadSearchProcessor extends SearchProcessor {
 	private List<Throwable> errors = new ArrayList<Throwable>();
 		
 	@Override
-	public <T extends PrevalenceEntity> void process(Class<T> classe, PrevalenceFilter<T> filter, List<T> retorno) throws ClassNotFoundException, IOException, ValidationPrevalenceException {		
+	public <T extends PrevalenceEntity> void process(Class<T> classe, PrevalenceFilter<T> filter, List<T> retorno) throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {		
 		setProgressObserver(filter.getProgressSearchObserver());
 		int numberOfThreads = PROCESSOR_CORES;
 		if (PROCESSOR_CORES > 1) {
 			numberOfThreads = numberOfThreads - 1;
 		}
 		int total = prevalence.count(classe);
-		setTotalCount(total);
+		setTotalEntitiesRepository(total);
 		int registersPerThread = total / numberOfThreads;
 		initSectors(numberOfThreads, registersPerThread, prevalence.getKeys(classe));
 		List<Thread> threads = new ArrayList<Thread>();

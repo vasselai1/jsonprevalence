@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import br.org.pr.jsonprevayler.search.matchers.PhoneticComparator;
+import br.org.pr.jsonprevayler.searchfilter.matchers.PhoneticComparator;
 
 class PhoneticTest {
 

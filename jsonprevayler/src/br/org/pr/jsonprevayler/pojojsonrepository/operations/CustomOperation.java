@@ -29,7 +29,7 @@ public abstract class CustomOperation {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public void execute(ComandOperationInterface operation) throws ValidationPrevalenceException, NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException {
+	public void execute(ComandOperationInterface operation) throws ValidationPrevalenceException, NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, Exception {
 		if (operation instanceof CascadeOperation) {
 			throw new ValidationPrevalenceException("Invalid Operation!");
 		}
@@ -45,7 +45,7 @@ public abstract class CustomOperation {
 		executedOperations.add(operation);
 	}
 	
-	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException {
+	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, Exception {
 		if (executedOperations.isEmpty()) {
 			return;
 		} 
