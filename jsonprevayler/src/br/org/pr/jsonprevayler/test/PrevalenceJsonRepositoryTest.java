@@ -16,8 +16,8 @@ class PrevalenceJsonRepositoryTest {
 		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 		
 		User usuario = new User();
-		usuario.setName("Selma Inoue da Silveira");
-		usuario.setMail("selma.inoue12341234@gmail.com");
+		usuario.setName("Usuario de teste 452");
+		usuario.setMail("asdf41234@gmail.com");
 		usuario.setPasswd("teste");
 		
 		prevalence.save(usuario);
@@ -25,7 +25,7 @@ class PrevalenceJsonRepositoryTest {
 
 		User userEx = new User();
 		userEx.setName("ssela");
-		AbstractPrevalenceFilter<User> listerUsuarioName = new AbstractPrevalenceFilter<User>(userEx) {
+		AbstractPrevalenceFilter<User> listerUsuarioName = new AbstractPrevalenceFilter<User>() {
 			@Override
 			public boolean isAcepted(User entity) {
 				return entity.getName().toLowerCase().contains(userEx.getName());

@@ -11,7 +11,7 @@ public abstract class AbstractPrevalenceFilter <T extends PrevalenceEntity> impl
 	protected MemorySearchEngineInterface searchEngine;
 	protected ProgressSearchObserver<T> progressSearchObserver = new BasicProgressSearchObserver<T>();
 	
-	private Comparator<T> comparator = new Comparator<T>() {
+	protected Comparator<T> comparator = new Comparator<T>() {
 		@Override
 		public int compare(T o1, T o2) {
 			return o1.getId().compareTo(o2.getId());
@@ -21,9 +21,22 @@ public abstract class AbstractPrevalenceFilter <T extends PrevalenceEntity> impl
 	private final T example;
 	private int total = 0;
 
+	public AbstractPrevalenceFilter(ProgressSearchObserver<T> progressSearchObserver, Comparator<T> comparator, T example) {
+		this.progressSearchObserver = progressSearchObserver;
+		this.comparator = comparator;
+		this.example = example;
+	}
+	public AbstractPrevalenceFilter(Comparator<T> comparator,T example) {
+		this.comparator = comparator;
+		this.example = example;
+	}
 	public AbstractPrevalenceFilter(T example) {
 		this.example = example;
 	}
+	public AbstractPrevalenceFilter() {
+		example = null;
+	}
+	
 	public abstract boolean isAcepted(T entity);
 
 	public Class<? extends PrevalenceEntity> getClasse() {
