@@ -25,7 +25,7 @@ public class SystemPropertieForLinkPropertiesFilePrevalenceConfigurator implemen
 	}	
 	
 	@Override
-	public <T extends SearchProcessorFactory> T getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
+	public SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
 		return propertiesConfigurator.getSearchProcessorFactory();
 	}
 

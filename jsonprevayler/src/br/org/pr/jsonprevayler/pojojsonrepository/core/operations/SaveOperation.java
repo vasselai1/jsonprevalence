@@ -1,4 +1,4 @@
-package br.org.pr.jsonprevayler.pojojsonrepository.operations;
+package br.org.pr.jsonprevayler.pojojsonrepository.core.operations;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -59,37 +59,35 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 		if (!deepSave) {
 			validateAllRelationsPersisted(instructions);
 		}
-		synchronized (classeInternal) {
-			Long id = sequenceProvider.get(classeInternal);
-			if (memoryCore.isIdUsed(classeInternal, id)) {
-				throw new InternalPrevalenceException("Id " + id + " is repeated! Please see the max value id in entities " + entity.getClass().getCanonicalName() + " and set +1 in sequence file!");
+		Long id = sequenceProvider.get(classeInternal);
+		if (memoryCore.isIdUsed(classeInternal, id)) {
+			throw new InternalPrevalenceException("Id " + id + " is repeated! Please see the max value id in entities " + entity.getClass().getCanonicalName() + " and set +1 in sequence file!");
+		}
+		if (entity instanceof VersionedEntity) {				
+			VersionedEntity newVersionedEntity = (VersionedEntity) entity;
+			if (newVersionedEntity.getVersion() != 0L) {
+				throw new ValidationPrevalenceException("Version is not zero!!!");
 			}
-			if (entity instanceof VersionedEntity) {				
-				VersionedEntity newVersionedEntity = (VersionedEntity) entity;
-				if (newVersionedEntity.getVersion() != 0L) {
-					throw new ValidationPrevalenceException("Version is not zero!!!");
-				}
-				newVersionedEntity.setVersion(1L);
+			newVersionedEntity.setVersion(1L);
+		}
+		entity.setId(id);
+		state = OperationState.VALIDATED;
+		try {
+			if (deepSave) {
+				cascadeOperation.set(instructions).execute();
+				isCascadeExecuted = true;
+				state = OperationState.RELATIONS_SAVED;
 			}
-			entity.setId(id);
-			state = OperationState.VALIDATED;
-			try {
-				if (deepSave) {
-					cascadeOperation.set(instructions).execute();
-					isCascadeExecuted = true;
-					state = OperationState.RELATIONS_SAVED;
-				}
-				T entitySave = ObjectCopyUtil.copyEntity(entity);
-				fileCore.writeRegister(classeInternal, entitySave, instructions);
-				state = OperationState.ENTITY_WRITED;
-				sequenceProvider.get(TotalChangesPrevalenceSystem.class);
-				state = OperationState.PREVALENCE_VERSION_UPDATED;
-				memoryCore.updateMemory(classeInternal, OperationType.SAVE, entitySave, deepSave);
-				state = OperationState.MEMORY_UPDATED;
-			} catch (Exception e) {
-				undo();
-				throw e;
-			}
+			T entitySave = ObjectCopyUtil.copyEntity(entity);
+			fileCore.writeRegister(classeInternal, entitySave, instructions);
+			state = OperationState.ENTITY_WRITED;
+			sequenceProvider.get(TotalChangesPrevalenceSystem.class);
+			state = OperationState.PREVALENCE_VERSION_UPDATED;
+			memoryCore.updateMemory(classeInternal, OperationType.SAVE, entitySave, deepSave);
+			state = OperationState.MEMORY_UPDATED;
+		} catch (Exception e) {
+			undo();
+			throw e;
 		}
 	}	
 	

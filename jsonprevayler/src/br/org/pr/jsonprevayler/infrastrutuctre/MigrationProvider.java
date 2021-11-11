@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -16,7 +15,6 @@ import java.util.TreeSet;
 
 import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.entity.MigrationExecution;
-import br.org.pr.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionException;
 import br.org.pr.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
@@ -27,6 +25,7 @@ import br.org.pr.jsonprevayler.migrations.filters.MigrationByLineFilterFirst;
 import br.org.pr.jsonprevayler.migrations.filters.MigrationExecutedFilter;
 import br.org.pr.jsonprevayler.migrations.operations.MigrationExecuter;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.FileCore;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.MemoryCore;
 
 public class MigrationProvider {
 
@@ -37,16 +36,19 @@ public class MigrationProvider {
 	}
 
 	private final FileCore fileCore;
-	private final PrevalentRepository<MigrationExecution> prevalence;
+	private final MemoryCore memoryCore;
+	private final PrevalentRepository prevalence;
 	private final String FS = File.separator;
 	private Set<SecurityMigrationCopy> securityCopies = new TreeSet<SecurityMigrationCopy>();
 	
 	public MigrationProvider(PrevalenceConfigurator prevalenceConfigurator) {
-		prevalence = new PrevalentRepository<>(prevalenceConfigurator);
 		fileCore = new FileCore(prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getSystemName());
+		MemoryCore.setInitializationType(prevalenceConfigurator.getInitializationMemoryCoreType());
+		memoryCore = new MemoryCore(fileCore);
+		prevalence = new PrevalentRepository(prevalenceConfigurator);
 	}
 
-	public List<MigrationInstruction> readMigrationsFile(InputStream inputStreamMigrationsFile, ReadType readType) throws IOException, ClassNotFoundException, InterruptedException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
+	public List<MigrationInstruction> readMigrationsFile(InputStream inputStreamMigrationsFile, ReadType readType) throws IOException, ClassNotFoundException, InterruptedException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, Exception {
 		List<MigrationInstruction> migrationsInstrutctions = new ArrayList<MigrationInstruction>();		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStreamMigrationsFile));
 		MigrationExecution lastMigration = null;		
@@ -164,13 +166,13 @@ public class MigrationProvider {
 		return null;
 	}
 	
-	public void migrate(InputStream inputStreamMigrationsFile) throws ValidationPrevalenceException, IOException, ClassNotFoundException, InternalPrevalenceException, InterruptedException {
+	public void migrate(InputStream inputStreamMigrationsFile) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
 		validate(inputStreamMigrationsFile);
 		List<MigrationInstruction> pendingMigrationsInstrucions = listPending(inputStreamMigrationsFile);		
 		List<MigrationExecuter> newMigrationsExecuteds = new ArrayList<MigrationExecuter>();
-		prevalence.stopForMaintenance();
+		memoryCore.stopForMaintenance();
 		for (MigrationInstruction migrationInstruction : pendingMigrationsInstrucions) {
-			MigrationExecuter migrationExecuter = MigrationOperationFactory.getOperationExecuter(migrationInstruction, prevalence);
+			MigrationExecuter migrationExecuter = MigrationOperationFactory.getOperationExecuter(migrationInstruction, fileCore);
 			try {
 				addSecurityCopy(migrationExecuter);
 				migrationExecuter.execute();
@@ -178,29 +180,29 @@ public class MigrationProvider {
 			} catch (Exception e) {
 				restoreSecurityCopies();
 				deleteSecurityCopies();
-				prevalence.startPosMaintenance();
+				memoryCore.startPosMaintenance();
 				throw new InternalPrevalenceException("Error in migration execution " + migrationExecuter.getMigrationInstruction() + " undo is executed!", e);
 			}
 		}
-		prevalence.startPosMaintenance();
+		memoryCore.startPosMaintenance();
 		try {
 			saveExecutedMigrations(newMigrationsExecuteds);
 		} catch (Exception e) {
 			try {
-				prevalence.stopForMaintenance();
+				memoryCore.stopForMaintenance();
 				restoreSecurityCopies();
 				deleteSecurityCopies();	
 			} catch (Exception e2) {
 				throw new InternalPrevalenceException("Error in restore and delete securities copies!", e);
 			} finally {
-				prevalence.startPosMaintenance();
+				memoryCore.startPosMaintenance();
 			}
 			throw new InternalPrevalenceException("Error in save executed migrations undo is executed!", e);
 		}
 		deleteSecurityCopies();
 	}
 
-	private void saveExecutedMigrations(List<MigrationExecuter> newMigrationsExecuteds) throws IOException, ValidationPrevalenceException, NoSuchAlgorithmException, ClassNotFoundException, InternalPrevalenceException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, DeprecatedPrevalenceEntityVersionException {
+	private void saveExecutedMigrations(List<MigrationExecuter> newMigrationsExecuteds) throws InstantiationException, NoSuchMethodException, Exception {
 		for (MigrationExecuter executed : newMigrationsExecuteds) {
 			saveExecutedMigration(executed);
 		}
@@ -222,7 +224,7 @@ public class MigrationProvider {
 		Integer line = migrationExecuter.getMigrationInstruction().getLineNumber();
 		String temporaryName = dirName + "_tempcopy";
 		File directory = fileCore.getFilePath(dirName);
-		File newDiretory = prevalence.getFilePath(temporaryName);
+		File newDiretory = fileCore.getFilePath(temporaryName);
 		SecurityMigrationCopy securityMigrationCopy = new SecurityMigrationCopy(dirName, line, directory, false, temporaryName, newDiretory);
 		if (!securityCopies.contains(securityMigrationCopy)) {
 			securityCopies.add(securityMigrationCopy);
@@ -245,20 +247,20 @@ public class MigrationProvider {
 		}
 	}
 	
-	public List<MigrationInstruction> listPending(InputStream inputStreamMigrationsFile) throws ValidationPrevalenceException, IOException, ClassNotFoundException, InterruptedException {
+	public List<MigrationInstruction> listPending(InputStream inputStreamMigrationsFile) throws ValidationPrevalenceException, IOException, ClassNotFoundException, InterruptedException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, Exception {
 		return readMigrationsFile(inputStreamMigrationsFile, ReadType.PENDING);
 	}
 
-	public List<MigrationInstruction> listExecuted(InputStream inputStreamMigrationsFile) throws ValidationPrevalenceException, IOException, ClassNotFoundException, InterruptedException {
+	public List<MigrationInstruction> listExecuted(InputStream inputStreamMigrationsFile) throws ValidationPrevalenceException, IOException, ClassNotFoundException, InterruptedException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, Exception {
 		return readMigrationsFile(inputStreamMigrationsFile, ReadType.EXECUTED);
 	}
 	
-	public String getStatus() throws ClassNotFoundException, IOException, InterruptedException, ValidationPrevalenceException {
+	public String getStatus() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
 		MigrationExecution lastMigration = getLastExecutedMigration();
 		return (lastMigration != null) ? lastMigration.toString() : "Never executed";
 	}
 	
-	public MigrationExecution getLastExecutedMigration() throws ClassNotFoundException, IOException, InterruptedException, ValidationPrevalenceException {
+	public MigrationExecution getLastExecutedMigration() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
 		MigrationExecution migration = null;
 		List<MigrationExecution> migrations = prevalence.listPojo(MigrationExecution.class, new MigrationExecutedFilter());
 		for (MigrationExecution migrationLoop : migrations) {

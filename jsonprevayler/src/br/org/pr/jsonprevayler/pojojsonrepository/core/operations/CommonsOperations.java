@@ -1,4 +1,4 @@
-package br.org.pr.jsonprevayler.pojojsonrepository.operations;
+package br.org.pr.jsonprevayler.pojojsonrepository.core.operations;
 
 import java.util.List;
 import java.util.logging.Logger;

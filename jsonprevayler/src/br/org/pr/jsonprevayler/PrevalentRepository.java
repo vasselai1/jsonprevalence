@@ -15,16 +15,17 @@ import br.org.pr.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.infrastrutuctre.PrevalenceChangeObserver;
 import br.org.pr.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
-import br.org.pr.jsonprevayler.pojojsonrepository.operations.CustomOperation;
-import br.org.pr.jsonprevayler.pojojsonrepository.operations.OperationsControler;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.operations.CustomOperation;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.operations.OperationsControler;
 import br.org.pr.jsonprevayler.searchfilter.FilterFirst;
 import br.org.pr.jsonprevayler.searchfilter.PrevalenceFilter;
+import br.org.pr.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 /**
  * Prevalence (file and memory) CRUD with version control, history, journal and observer. 
  * @author vasselai1
  */
-public class PrevalentRepository <T extends PrevalenceEntity> {
+public class PrevalentRepository {
 
 	private final PrevalenceConfigurator prevalenceConfigurator;
 
@@ -32,76 +33,76 @@ public class PrevalentRepository <T extends PrevalenceEntity> {
 		this.prevalenceConfigurator = prevalenceConfigurator;
 	}
 
-	public void save(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, InternalPrevalenceException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, DeprecatedPrevalenceEntityVersionException, InstantiationException, NoSuchMethodException, Exception {
-		getNewConfiguredControler().save(entity);
+	public <T extends PrevalenceEntity> void save(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, InternalPrevalenceException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, DeprecatedPrevalenceEntityVersionException, InstantiationException, NoSuchMethodException, Exception {
+		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).save(entity);
 	}
-	public void saveDeep(T entity) throws ValidationPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchAlgorithmException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, InstantiationException, NoSuchMethodException, Exception {
-		getNewConfiguredControler().saveDeep(entity);
+	public <T extends PrevalenceEntity> void saveDeep(T entity) throws ValidationPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchAlgorithmException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, InstantiationException, NoSuchMethodException, Exception {
+		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).saveDeep(entity);
 	}
 	
-	public void update(T entity) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, InstantiationException, NoSuchMethodException, Exception {
-		getNewConfiguredControler().update(entity);
+	public <T extends PrevalenceEntity> void update(T entity) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, InstantiationException, NoSuchMethodException, Exception {
+		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).update(entity);
 	}
-	public  void updateDeep(T entity) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, InstantiationException, NoSuchMethodException, Exception {
-		getNewConfiguredControler().updateDeep(entity);
+	public <T extends PrevalenceEntity> void updateDeep(T entity) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, InstantiationException, NoSuchMethodException, Exception {
+		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).updateDeep(entity);
 	}	
 	
-	public void delete(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InternalPrevalenceException, InstantiationException, NoSuchMethodException, Exception {
-		getNewConfiguredControler().delete(entity);
+	public <T extends PrevalenceEntity> void delete(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InternalPrevalenceException, InstantiationException, NoSuchMethodException, Exception {
+		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).delete(entity);
 	}
 
 	public <Z extends CustomOperation> Z newAtomicOperation(Class<Z> classeCustomOperation)  throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, InstantiationException, NoSuchMethodException, Exception {
-		return getNewConfiguredControler().newAtomicOperation(classeCustomOperation);
+		return new OperationsControler<PrevalenceEntity>(prevalenceConfigurator, getSearchProcessorFactory()).newAtomicOperation(classeCustomOperation);
 	}
 	
-	public Integer count(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
-		return getNewConfiguredControler().count(classe);
+	public <T extends PrevalenceEntity> Integer count(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).count(classe);
 	}
-	public Integer count(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, ValidationPrevalenceException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
-		return getNewConfiguredControler().count(classe, filter);
+	public <T extends PrevalenceEntity> Integer count(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, ValidationPrevalenceException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).count(classe, filter);
 	}
 	
-	public T getPojo(Class<T> classe, Long id) throws ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, ValidationPrevalenceException, InterruptedException {
-		return getNewConfiguredControler().getPojo(classe, id);
+	public <T extends PrevalenceEntity> T getPojo(Class<T> classe, Long id) throws ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, ValidationPrevalenceException, InterruptedException {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).getPojo(classe, id);
 	} 
 	
-	public String getJson(Class<T> classe, Long id) throws ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ValidationPrevalenceException, IOException, InterruptedException {
-		return getNewConfiguredControler().getJson(classe, id);
+	public <T extends PrevalenceEntity> String getJson(Class<T> classe, Long id) throws ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ValidationPrevalenceException, IOException, InterruptedException {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).getJson(classe, id);
 	}
 	
-	public T getFirstPojo(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
-		return getNewConfiguredControler().getFirstPojo(classe, filterFirst);
+	public <T extends PrevalenceEntity> T getFirstPojo(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).getFirstPojo(classe, filterFirst);
 	}
 	
-	public String getFirstJson(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
-		return getNewConfiguredControler().getFirstJson(classe, filterFirst);
+	public <T extends PrevalenceEntity> String getFirstJson(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).getFirstJson(classe, filterFirst);
 	}
 	
-	public List<T> listPojo(Class<T> classe) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
-		return getNewConfiguredControler().listPojo(classe);
+	public <T extends PrevalenceEntity> List<T> listPojo(Class<T> classe) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).listPojo(classe);
 	}
-	public List<T> listPojo(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
-		return getNewConfiguredControler().listPojo(classe, filter);
+	public <T extends PrevalenceEntity> List<T> listPojo(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).listPojo(classe, filter);
 	}
 
-	public String listJson(Class<T> classe) throws IOException, ValidationPrevalenceException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, Exception {
-		return getNewConfiguredControler().listJson(classe);
+	public <T extends PrevalenceEntity> String listJson(Class<T> classe) throws IOException, ValidationPrevalenceException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, Exception {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).listJson(classe);
 	}
-	public String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
-		return getNewConfiguredControler().listJson(classe, filter);
+	public <T extends PrevalenceEntity> String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).listJson(classe, filter);
 	}	
 	
-	public List<?> joSqlQueryList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
-		return getNewConfiguredControler().joSqlQueryList(classe, joSqlQuery, parametersBind);
+	public <T extends PrevalenceEntity> List<?> joSqlQueryList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).joSqlQueryList(classe, joSqlQuery, parametersBind);
 	}
 
-	public List<?> joSqlQueryHavingList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
-		return getNewConfiguredControler().joSqlQueryHavingList(classe, joSqlQuery, parametersBind);
+	public <T extends PrevalenceEntity> List<?> joSqlQueryHavingList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).joSqlQueryHavingList(classe, joSqlQuery, parametersBind);
 	}
 
 	@SuppressWarnings({ "rawtypes" })
-	public Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
-		return getNewConfiguredControler().joSqlQueryGroupMap(classe, joSqlQuery, parametersBind);
+	public <T extends PrevalenceEntity> Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, Exception {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).joSqlQueryGroupMap(classe, joSqlQuery, parametersBind);
 	}
 	
 	public void registerObserver(PrevalenceChangeObserver observer) {
@@ -112,8 +113,8 @@ public class PrevalentRepository <T extends PrevalenceEntity> {
 		OperationsControler.deRegisterObserver(observer);
 	}	
 	
-	private OperationsControler<T> getNewConfiguredControler() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
-		return new OperationsControler<T>(prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getSearchProcessorFactory().createNewSearchProcessor(), prevalenceConfigurator.getInitializationMemoryCoreType());
+	private SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
+		return prevalenceConfigurator.getSearchProcessorFactory();
 	}
 	
 }

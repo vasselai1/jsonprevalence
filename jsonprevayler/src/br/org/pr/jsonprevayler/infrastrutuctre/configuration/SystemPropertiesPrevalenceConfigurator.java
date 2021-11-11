@@ -9,8 +9,8 @@ public class SystemPropertiesPrevalenceConfigurator implements PrevalenceConfigu
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T extends SearchProcessorFactory> T getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
-		Class<T> classe = (Class<T>) Class.forName(System.getProperty("searchProcessorFactory"));
+	public SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
+		Class<? extends SearchProcessorFactory> classe = (Class<? extends SearchProcessorFactory>) Class.forName(System.getProperty("searchProcessorFactory"));
 		return classe.getDeclaredConstructor().newInstance();
 	}
 

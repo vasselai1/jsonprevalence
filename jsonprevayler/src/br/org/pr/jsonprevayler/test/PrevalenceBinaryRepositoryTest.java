@@ -11,20 +11,17 @@ import br.org.pr.jsonprevayler.util.RecordPathUtil;
 
 class PrevalenceBinaryRepositoryTest {
 
-	private static final String DIR_DADOS_TESTES = RecordPathUtil.getPath();
-	private static final String SYSTEM_TEST_NAME = "PREVALENCE_TEST"; 
-	
-	@Test
+	//@Test
 	void testSaveUpdate() throws IOException, Exception {
-		PrevalentBinaryRepository prevalence = new PrevalentBinaryRepository(DIR_DADOS_TESTES, SYSTEM_TEST_NAME); 
+		PrevalentBinaryRepository prevalence = new PrevalentBinaryRepository(TestPrevalenceConfigurator.getConfigurator()); 
 		
 		Long id = prevalence.save("dasfçasldkfjasdç lfjasdçlfk jasdlçfkjasd".getBytes());
 		prevalence.update(id, "alterado alterado alterado".getBytes());
 	}
 
-	//@Test
+	@Test
 	void testDelete() throws IOException, Exception {
-		PrevalentBinaryRepository prevalence = new PrevalentBinaryRepository(DIR_DADOS_TESTES, SYSTEM_TEST_NAME); 
+		PrevalentBinaryRepository prevalence = new PrevalentBinaryRepository(TestPrevalenceConfigurator.getConfigurator()); 
 		
 		Long id = null;
 		System.out.println("Quantidade : " + prevalence.list().size());

@@ -21,10 +21,10 @@ public class SequenceProvider {
 		this.systemPath = systemPath;
 	}
 
-	public <T extends PrevalenceEntity> long get(Class<T> entidade) throws IOException {
-		String entityName = entidade.getCanonicalName();
+	public <T extends PrevalenceEntity> long get(Class<T> classEntity) throws IOException {
+		String entityName = classEntity.getCanonicalName();
 		long retorno = 0;
-		synchronized (entidade) {			
+		synchronized (classEntity) {			
 			Sequence sequence = load(entityName);
 			retorno = sequence.getLastValue() + 1;
 			sequence.setLastValue(retorno);

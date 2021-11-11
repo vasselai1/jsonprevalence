@@ -9,5 +9,6 @@ public interface ProgressSearchObserver <T extends PrevalenceEntity> {
 	void addOneProgress();
 	void addFounded(T entity);
 	void sumCountFounded(int unitsFoundeds);
+	void endEvent();
 	
 }

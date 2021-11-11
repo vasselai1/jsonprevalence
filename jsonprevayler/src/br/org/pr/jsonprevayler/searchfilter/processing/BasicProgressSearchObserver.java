@@ -1,12 +1,18 @@
 package br.org.pr.jsonprevayler.searchfilter.processing;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import br.org.pr.jsonprevayler.entity.PrevalenceEntity;
 import br.org.pr.jsonprevayler.searchfilter.ProgressSearchObserver;
 
-@SuppressWarnings("rawtypes")
-public class BasicProgressSearchObserver implements ProgressSearchObserver {
+public class BasicProgressSearchObserver<T extends PrevalenceEntity> implements ProgressSearchObserver<T> {
 
-	private Integer totalEntitiesRepository;
+	private Integer totalEntitiesRepository = 0;
+	private Integer totalProcessed = 0;
+	private Integer totalFounded = 0;
+	private boolean endOfSearch = false;
+	private List<T> foundeds = new ArrayList<T>();
 	
 	@Override
 	public void setTotalEntitiesRepository(Integer total) {
@@ -20,17 +26,39 @@ public class BasicProgressSearchObserver implements ProgressSearchObserver {
 
 	@Override
 	public void addOneProgress() {
-		totalEntitiesRepository++;
+		totalProcessed++;
 	}
 
 	@Override
-	public void addFounded(PrevalenceEntity entity) {
-		totalEntitiesRepository++;
+	public void addFounded(T entity) {
+		totalFounded++;
+		foundeds.add(entity);
 	}
 
 	@Override
 	public void sumCountFounded(int unitsFoundeds) {
-		totalEntitiesRepository = totalEntitiesRepository + unitsFoundeds;
+		totalFounded = totalFounded + unitsFoundeds;//Para processamento distribuido
 	}
 
+	@Override
+	public void endEvent() {
+		endOfSearch = true;		
+	}
+
+	public boolean isEndOfSearch() {
+		return endOfSearch;
+	}
+
+	public Integer getTotalProcessed() {
+		return totalProcessed;
+	}
+
+	public Integer getTotalFounded() {
+		return totalFounded;
+	}
+
+	public List<T> getFoundeds() {
+		return foundeds;
+	}
+	
 }

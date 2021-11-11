@@ -8,24 +8,29 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import br.org.pr.jsonprevayler.PrevalentBinaryRepository;
-import br.org.pr.jsonprevayler.PrevalentRepository;
 import br.org.pr.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
+import br.org.pr.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.FileCore;
+import br.org.pr.jsonprevayler.pojojsonrepository.core.MemoryCore;
 
 public class BackupProvider {
 	
-	private final PrevalentRepository prevalenceJson;
+	private final FileCore fileCore;
+	private final MemoryCore memoryCore;
 	private final PrevalentBinaryRepository prevalenceBinary;
 	
-	public BackupProvider(String systemPath, String systemName) {
-		prevalenceJson = new PrevalentRepository(systemPath, systemName);
-		prevalenceBinary = new PrevalentBinaryRepository(systemPath, systemName);
+	public BackupProvider(PrevalenceConfigurator prevalenceConfigurator) {
+		fileCore = new FileCore(prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getSystemName());
+		MemoryCore.setInitializationType(prevalenceConfigurator.getInitializationMemoryCoreType());
+		memoryCore = new MemoryCore(fileCore);
+		prevalenceBinary = new PrevalentBinaryRepository(prevalenceConfigurator);
 	}
 	
 	public void getZipBackup(OutputStream outputStream) throws InternalPrevalenceException, ValidationPrevalenceException, IOException {
-		File systemDir = prevalenceJson.getSystemFileDir();
+		File systemDir = fileCore.getSystemFileDir();
 		ZipOutputStream zipOut = new ZipOutputStream(outputStream);
-		prevalenceJson.stopForMaintenance();
+		memoryCore.startPosMaintenance();
 		prevalenceBinary.stopForMaintenance();
 		try {
 			zipFile(systemDir, systemDir.getName(), zipOut);
@@ -34,7 +39,7 @@ public class BackupProvider {
 		} catch (Exception ex) {
 			throw new InternalPrevalenceException("Error while backup execution!", ex);
 		} finally {
-			prevalenceJson.startPosMaintenance();
+			memoryCore.startPosMaintenance();
 			prevalenceBinary.startPosMaintenance();
 		}
 	}

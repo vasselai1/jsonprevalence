@@ -1,4 +1,4 @@
-package br.org.pr.jsonprevayler.pojojsonrepository.operations;
+package br.org.pr.jsonprevayler.pojojsonrepository.core.operations;
 
 public enum OperationState {
 	INITIALIZED,

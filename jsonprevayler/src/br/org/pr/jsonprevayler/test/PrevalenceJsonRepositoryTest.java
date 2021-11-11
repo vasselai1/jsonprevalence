@@ -5,24 +5,19 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import br.org.pr.jsonprevayler.PrevalentRepository;
-import br.org.pr.jsonprevayler.search.AbstractPrevalenceFilter;
-import br.org.pr.jsonprevayler.search.ProgressSearchObserver;
+import br.org.pr.jsonprevayler.searchfilter.AbstractPrevalenceFilter;
 import br.org.pr.jsonprevayler.test.entity.User;
 import br.org.pr.jsonprevayler.util.HashUtil;
-import br.org.pr.jsonprevayler.util.RecordPathUtil;
 
 class PrevalenceJsonRepositoryTest {
-
-	private static final String DIR_DADOS_TESTES = RecordPathUtil.getPath();
-	private static final String SYSTEM_TEST_NAME = "PREVALENCE_TEST"; 
 	
 	//@Test
-	void testSaveList() throws Exception {
-		PrevalentRepository<User> prevalence = new PrevalentRepository<User>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+	public void testSaveList() throws Exception {
+		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 		
 		User usuario = new User();
-		usuario.setName("Ricardo Vasselai Teste");
-		usuario.setMail("adfasdf@gmail.com");
+		usuario.setName("Selma Inoue da Silveira");
+		usuario.setMail("selma.inoue12341234@gmail.com");
 		usuario.setPasswd("teste");
 		
 		prevalence.save(usuario);
@@ -34,15 +29,6 @@ class PrevalenceJsonRepositoryTest {
 			@Override
 			public boolean isAcepted(User entity) {
 				return entity.getName().toLowerCase().contains(userEx.getName());
-			}
-
-			@Override
-			public void setPrevalenceInstance(PrevalentRepository pojoJsonRepository) {
-			}
-
-			@Override
-			public ProgressSearchObserver getProgressSearchObserver() {
-				return null;
 			}
 		};
 		
@@ -56,8 +42,8 @@ class PrevalenceJsonRepositoryTest {
 	}
 
 	//@Test
-	void testUpdateList() throws Exception {
-		PrevalentRepository<User> prevalence = new PrevalentRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+	public void testUpdateList() throws Exception {
+		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 	
 		User user = prevalence.getPojo(User.class, 1L);
 		user.setName("Outro nome de teste");
@@ -70,15 +56,6 @@ class PrevalenceJsonRepositoryTest {
 			public boolean isAcepted(User entity) {
 				return entity.getName().toLowerCase().contains(userEx.getName());
 			}
-
-			@Override
-			public void setPrevalenceInstance(PrevalentRepository pojoJsonRepository) {
-			}
-
-			@Override
-			public ProgressSearchObserver getProgressSearchObserver() {
-				return null;
-			}
 		};
 		
 		long initial = System.currentTimeMillis();
@@ -90,9 +67,9 @@ class PrevalenceJsonRepositoryTest {
 		}
 	}	
 	
-	//@Test
-	void testDeleteList() throws Exception {
-		PrevalentRepository<User> prevalence = new PrevalentRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+	@Test
+	public void testDeleteList() throws Exception {
+		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 
 		List<User> users = prevalence.listPojo(User.class);
 		System.out.println("Results: " + users.size());
@@ -111,8 +88,8 @@ class PrevalenceJsonRepositoryTest {
 	
 	
 	//@Test
-	void testMemoria() throws Exception {
-		PrevalentRepository<User> prevalence = new PrevalentRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);		
+	public void testMemoria() throws Exception {
+		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());		
 		
 		long initial = System.currentTimeMillis();
 		int count = 1000;
@@ -133,15 +110,15 @@ class PrevalenceJsonRepositoryTest {
 //		}
 	}
 	
-	@Test
-	void testList() throws Exception {
-		PrevalentRepository<User> prevalence = new PrevalentRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+	//@Test
+	public void testList() throws Exception {
+		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 		System.out.println(prevalence.listJson(User.class));
 	}
 	
-	@Test
-	void testListPojo() throws Exception {
-		PrevalentRepository<User> prevalence = new PrevalentRepository<>(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+	//@Test
+	public void testListPojo() throws Exception {
+		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 		System.out.println(prevalence.listPojo(User.class));
 	}	
 	

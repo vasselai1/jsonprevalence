@@ -1,4 +1,4 @@
-package br.org.pr.jsonprevayler.pojojsonrepository.operations;
+package br.org.pr.jsonprevayler.pojojsonrepository.core.operations;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -15,13 +15,13 @@ import br.org.pr.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.org.pr.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.org.pr.jsonprevayler.infrastrutuctre.PrevalenceChangeObserver;
 import br.org.pr.jsonprevayler.infrastrutuctre.SequenceProvider;
+import br.org.pr.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.FileCore;
-import br.org.pr.jsonprevayler.pojojsonrepository.core.InitializationMemoryCoreType;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.MemoryCore;
 import br.org.pr.jsonprevayler.pojojsonrepository.core.MemorySearchEngineInterface;
 import br.org.pr.jsonprevayler.searchfilter.FilterFirst;
 import br.org.pr.jsonprevayler.searchfilter.PrevalenceFilter;
-import br.org.pr.jsonprevayler.searchfilter.processing.SearchProcessor;
+import br.org.pr.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 public class OperationsControler <T extends PrevalenceEntity> {
  	
@@ -34,15 +34,15 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	private final FilterOperation<T> filterOperation;
 	private final JoSqlOperation<T> joSqlOperation;
 
-	public OperationsControler(String prevalencePath, String systemName, SearchProcessor searchProcessor, InitializationMemoryCoreType initializationMemoryCoreType) {
-		MemoryCore.setInitializationType(initializationMemoryCoreType);
-		fileCore = new FileCore(prevalencePath, systemName);
+	public OperationsControler(PrevalenceConfigurator prevalenceConfigurator, SearchProcessorFactory searchProcessorFactory) {
+		MemoryCore.setInitializationType(prevalenceConfigurator.getInitializationMemoryCoreType());
+		fileCore = new FileCore(prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getSystemName());
 		memoryCore = new MemoryCore(fileCore);
 		sequenceProvider = new SequenceProvider(fileCore.getSystemPath());		
 		saveOperation = new SaveOperation<T>(sequenceProvider, memoryCore, fileCore);
 		updateOperation = new UpdateOperation<T>(sequenceProvider, memoryCore, fileCore);
 		deleteOperation = new DeleteOperation<T>(memoryCore, fileCore, sequenceProvider);
-		filterOperation = new FilterOperation<T>(memoryCore, searchProcessor);
+		filterOperation = new FilterOperation<T>(memoryCore, searchProcessorFactory.createNewSearchProcessor());
 		joSqlOperation = new JoSqlOperation<T>(memoryCore);
 	}
 

@@ -16,8 +16,8 @@ public class PropertiesPrevalenceConfigurator implements PrevalenceConfigurator 
 	
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T extends SearchProcessorFactory> T getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
-		Class<T> classe = (Class<T>) Class.forName(properties.getProperty("searchProcessorFactory"));
+	public SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
+		Class<? extends SearchProcessorFactory> classe = (Class<? extends SearchProcessorFactory>) Class.forName(properties.getProperty("searchProcessorFactory"));
 		return classe.getDeclaredConstructor().newInstance();
 	}
 
@@ -35,5 +35,4 @@ public class PropertiesPrevalenceConfigurator implements PrevalenceConfigurator 
 	public InitializationMemoryCoreType getInitializationMemoryCoreType() {
 		return InitializationMemoryCoreType.valueOf(properties.getProperty("initializationMemoryCoreType"));
 	}
-
 }

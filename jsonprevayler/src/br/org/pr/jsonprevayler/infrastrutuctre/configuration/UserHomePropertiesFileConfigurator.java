@@ -19,14 +19,14 @@ public class UserHomePropertiesFileConfigurator implements PrevalenceConfigurato
 		if (propertiesConfigurator != null) {
 			return;
 		}
-		File propertiesFile = new File(RecordPathUtil.getPath(), "jsonPrevalence.properties") ;
+		File propertiesFile = new File(RecordPathUtil.getUserHomePath(), "jsonPrevalence.properties") ;
 		Properties properties = new Properties();
 		properties.load(new FileInputStream(propertiesFile));
 		propertiesConfigurator = new PropertiesPrevalenceConfigurator(properties);
 	}
 	
 	@Override
-	public <T extends SearchProcessorFactory> T getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
+	public SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
 		return propertiesConfigurator.getSearchProcessorFactory();
 	}
 

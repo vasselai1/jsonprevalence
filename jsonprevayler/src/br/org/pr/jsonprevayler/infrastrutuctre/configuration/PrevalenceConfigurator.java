@@ -7,7 +7,7 @@ import br.org.pr.jsonprevayler.searchfilter.processing.searchprocessorfactory.Se
 
 public interface PrevalenceConfigurator {
 
-	public <T extends SearchProcessorFactory> T getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException;
+	public SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException;
 	public String getPrevalencePath();
 	public String getSystemName();
 	public InitializationMemoryCoreType getInitializationMemoryCoreType();	

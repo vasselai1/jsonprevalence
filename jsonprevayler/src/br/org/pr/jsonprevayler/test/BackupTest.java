@@ -13,7 +13,7 @@ import br.org.pr.jsonprevayler.util.RecordPathUtil;
 
 class BackupTest {
 
-	private static final String DIR_DADOS_TESTES = RecordPathUtil.getPath();
+	private static final String DIR_DADOS_TESTES = RecordPathUtil.getUserHomePath();
 	private static final String SYSTEM_TEST_NAME = "PREVALENCE_TEST";
 	
 	@Test
@@ -27,7 +27,7 @@ class BackupTest {
 			backupFile.createNewFile();
 		}
 		FileOutputStream fos = new FileOutputStream(backupFile);
-		BackupProvider backupProvider = new BackupProvider(DIR_DADOS_TESTES, SYSTEM_TEST_NAME);
+		BackupProvider backupProvider = new BackupProvider(TestPrevalenceConfigurator.getConfigurator());
 		backupProvider.getZipBackup(fos);		
 	}
 
