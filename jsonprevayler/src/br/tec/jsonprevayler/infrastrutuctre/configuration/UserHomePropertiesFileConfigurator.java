@@ -45,4 +45,9 @@ public class UserHomePropertiesFileConfigurator implements PrevalenceConfigurato
 		return propertiesConfigurator.getInitializationMemoryCoreType();
 	}
 
+	@Override
+	public Integer getNumberOfFilesPerDiretory() {
+		return propertiesConfigurator.getNumberOfFilesPerDiretory();
+	}
+
 }

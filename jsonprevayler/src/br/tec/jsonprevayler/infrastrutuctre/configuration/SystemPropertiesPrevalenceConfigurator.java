@@ -16,17 +16,22 @@ public class SystemPropertiesPrevalenceConfigurator implements PrevalenceConfigu
 
 	@Override
 	public String getPrevalencePath() {
-		return System.getProperty("prevalencePath");
+		return System.getProperty("br.tec.jsonprevayler.prevalencePath");
 	}
 
 	@Override
 	public String getSystemName() {
-		return System.getProperty("systemName");
+		return System.getProperty("br.tec.jsonprevayler.systemName");
 	}
 
 	@Override
 	public InitializationMemoryCoreType getInitializationMemoryCoreType() {
-		return InitializationMemoryCoreType.valueOf(System.getProperty("initializationMemoryCoreType"));
+		return InitializationMemoryCoreType.valueOf(System.getProperty("br.tec.jsonprevayler.initializationMemoryCoreType"));
+	}
+
+	@Override
+	public Integer getNumberOfFilesPerDiretory() {
+		return Integer.parseInt(System.getProperty("br.tec.jsonprevayler.numberOfFilesPerDiretory"));
 	}
 
 }

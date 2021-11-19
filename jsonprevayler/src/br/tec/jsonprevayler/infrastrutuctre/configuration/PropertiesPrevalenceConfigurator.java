@@ -35,4 +35,9 @@ public class PropertiesPrevalenceConfigurator implements PrevalenceConfigurator 
 	public InitializationMemoryCoreType getInitializationMemoryCoreType() {
 		return InitializationMemoryCoreType.valueOf(properties.getProperty("initializationMemoryCoreType"));
 	}
+
+	@Override
+	public Integer getNumberOfFilesPerDiretory() {
+		return Integer.parseInt(properties.getProperty("numberOfFilesPerDiretory"));
+	}
 }

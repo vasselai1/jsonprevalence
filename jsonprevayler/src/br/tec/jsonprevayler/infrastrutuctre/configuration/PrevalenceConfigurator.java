@@ -10,6 +10,7 @@ public interface PrevalenceConfigurator {
 	public SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException;
 	public String getPrevalencePath();
 	public String getSystemName();
-	public InitializationMemoryCoreType getInitializationMemoryCoreType();	
+	public InitializationMemoryCoreType getInitializationMemoryCoreType();
+	public Integer getNumberOfFilesPerDiretory();
 	
 }

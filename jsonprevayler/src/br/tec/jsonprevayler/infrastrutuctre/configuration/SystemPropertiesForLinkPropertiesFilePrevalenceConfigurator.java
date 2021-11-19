@@ -10,7 +10,7 @@ import java.util.Properties;
 import br.tec.jsonprevayler.pojojsonrepository.core.InitializationMemoryCoreType;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
-public class SystemPropertieForLinkPropertiesFilePrevalenceConfigurator implements PrevalenceConfigurator {
+public class SystemPropertiesForLinkPropertiesFilePrevalenceConfigurator implements PrevalenceConfigurator {
 
 	private static PropertiesPrevalenceConfigurator propertiesConfigurator;
 	
@@ -18,7 +18,7 @@ public class SystemPropertieForLinkPropertiesFilePrevalenceConfigurator implemen
 		if (propertiesConfigurator != null) {
 			return;
 		}
-		File propertiesFile = new File(System.getProperty("prevalencePropertiesFilePath")) ;
+		File propertiesFile = new File(System.getProperty("br.tec.jsonprevayler.prevalencePropertiesFilePath")) ;
 		Properties properties = new Properties();
 		properties.load(new FileInputStream(propertiesFile));
 		propertiesConfigurator = new PropertiesPrevalenceConfigurator(properties);
@@ -42,6 +42,11 @@ public class SystemPropertieForLinkPropertiesFilePrevalenceConfigurator implemen
 	@Override
 	public InitializationMemoryCoreType getInitializationMemoryCoreType() {
 		return propertiesConfigurator.getInitializationMemoryCoreType();
+	}
+
+	@Override
+	public Integer getNumberOfFilesPerDiretory() {
+		return propertiesConfigurator.getNumberOfFilesPerDiretory();
 	}
 
 }

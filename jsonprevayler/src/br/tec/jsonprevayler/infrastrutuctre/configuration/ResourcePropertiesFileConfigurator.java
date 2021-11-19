@@ -8,7 +8,7 @@ import java.util.Properties;
 import br.tec.jsonprevayler.pojojsonrepository.core.InitializationMemoryCoreType;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
-public class ResourcePropertiesFileConfigurator implements PrevalenceConfigurator{
+public class ResourcePropertiesFileConfigurator implements PrevalenceConfigurator {
 
 	private static PropertiesPrevalenceConfigurator propertiesConfigurator;
 	
@@ -39,6 +39,11 @@ public class ResourcePropertiesFileConfigurator implements PrevalenceConfigurato
 	@Override
 	public InitializationMemoryCoreType getInitializationMemoryCoreType() {
 		return propertiesConfigurator.getInitializationMemoryCoreType();
+	}
+
+	@Override
+	public Integer getNumberOfFilesPerDiretory() {
+		return propertiesConfigurator.getNumberOfFilesPerDiretory();
 	}
 
 }

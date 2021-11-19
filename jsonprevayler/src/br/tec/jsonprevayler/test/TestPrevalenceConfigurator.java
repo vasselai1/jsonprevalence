@@ -17,7 +17,7 @@ public class TestPrevalenceConfigurator {
 	}
 	
 	public static PrevalenceConfigurator getConfigurator(SearchProcessorFactory searchProcessorFactory) {
-		return new PojoPrevalenceConfigurator(searchProcessorFactory, prevalencePath, systemName, InitializationMemoryCoreType.POJO_AND_ENUM);
+		return new PojoPrevalenceConfigurator(searchProcessorFactory, prevalencePath, systemName, InitializationMemoryCoreType.POJO_AND_ENUM, 10);
 	}
 	
 }

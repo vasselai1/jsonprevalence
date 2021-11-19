@@ -9,13 +9,20 @@ public class PojoPrevalenceConfigurator implements PrevalenceConfigurator {
 	private String prevalencePath;
 	private String systemName;
 	private InitializationMemoryCoreType initializationMemoryCoreType;
+	private Integer numberOfFilesPerDiretory;
 
-	public PojoPrevalenceConfigurator(SearchProcessorFactory searchProcessorFactory, String prevalencePath, String systemName, InitializationMemoryCoreType initializationMemoryCoreType) {
+	public PojoPrevalenceConfigurator(SearchProcessorFactory searchProcessorFactory, 
+									  String prevalencePath, 
+									  String systemName, 
+									  InitializationMemoryCoreType initializationMemoryCoreType, 
+									  Integer numberOfFilesPerDiretory) {
 		this.searchProcessorFactory = searchProcessorFactory;
 		this.prevalencePath = prevalencePath;
 		this.systemName = systemName;
 		this.initializationMemoryCoreType = initializationMemoryCoreType;
+		this.numberOfFilesPerDiretory = numberOfFilesPerDiretory;
 	}
+	
 	public SearchProcessorFactory getSearchProcessorFactory() {
 		return searchProcessorFactory;
 	}
@@ -39,6 +46,10 @@ public class PojoPrevalenceConfigurator implements PrevalenceConfigurator {
 	}
 	public void setInitializationMemoryCoreType(InitializationMemoryCoreType initializationMemoryCoreType) {
 		this.initializationMemoryCoreType = initializationMemoryCoreType;
+	}
+	@Override
+	public Integer getNumberOfFilesPerDiretory() {
+		return numberOfFilesPerDiretory;
 	}
 	
 }
