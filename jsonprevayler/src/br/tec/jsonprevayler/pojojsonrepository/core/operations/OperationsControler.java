@@ -35,8 +35,7 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	private final JoSqlOperation<T> joSqlOperation;
 
 	public OperationsControler(PrevalenceConfigurator prevalenceConfigurator, SearchProcessorFactory searchProcessorFactory) {
-		MemoryCore.setInitializationType(prevalenceConfigurator.getInitializationMemoryCoreType());
-		fileCore = new FileCore(prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getSystemName());
+		fileCore = new FileCore(prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getSystemName(), prevalenceConfigurator.getNumberOfFilesPerDiretory());
 		memoryCore = new MemoryCore(fileCore);
 		sequenceProvider = new SequenceProvider(fileCore.getSystemPath());		
 		saveOperation = new SaveOperation<T>(sequenceProvider, memoryCore, fileCore);
@@ -47,18 +46,12 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	}
 
 	public void save(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, InternalPrevalenceException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, DeprecatedPrevalenceEntityVersionException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {
-		saveOperation.set(entity, false).execute();
-	}
-	public void saveDeep(T entity) throws ValidationPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchAlgorithmException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {
-		saveOperation.set(entity, true).execute();
+		saveOperation.set(entity).execute();
 	}
 	
 	public void update(T entity) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {
-		updateOperation.set(entity, false).execute();
+		updateOperation.set(entity).execute();
 	}
-	public  void updateDeep(T entity) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {
-		updateOperation.set(entity, true).execute();
-	}	
 	
 	public void delete(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InternalPrevalenceException, Exception {
 		deleteOperation.set(entity).execute();
@@ -103,6 +96,7 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	public String listJson(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		return filterOperation.listJson(classe);
 	}
+	
 	public String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
 		return filterOperation.listJson(classe, filter);
 	}	

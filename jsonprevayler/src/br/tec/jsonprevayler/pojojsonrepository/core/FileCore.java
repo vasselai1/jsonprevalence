@@ -13,8 +13,6 @@ import java.util.logging.Logger;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.infrastrutuctre.HistoryJornalWriter;
-import br.tec.jsonprevayler.infrastrutuctre.normalization.JsonSerializationInstructions;
-import br.tec.jsonprevayler.infrastrutuctre.normalization.MapPrevalenceTransformer;
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
 
@@ -106,7 +104,7 @@ public class FileCore {
 		return dirPathEntities;
 	}
 	
-	public <T extends PrevalenceEntity> void writeRegister(Class<T> classe, T entity, JsonSerializationInstructions instructions) throws IOException, NoSuchAlgorithmException {
+	public <T extends PrevalenceEntity> void writeRegister(Class<T> classe, T entity) throws IOException, NoSuchAlgorithmException {
 		FileBalancer fileBalancer = getFileBalancer(classe);
 		Path fileRegisterPath = fileBalancer.getPath(entity.getId());		
 		OperationType operationType = OperationType.UPDATE;
@@ -119,15 +117,7 @@ public class FileCore {
 		} else {
 			fileRegister = fileRegisterPath.toFile();
 		}
-		JSONSerializer serializer = new JSONSerializer();
-		serializer.transform(new MapPrevalenceTransformer(), Map.class);
-		for (String excludeLoop : instructions.getIgnores()) {
-			serializer.exclude(excludeLoop);	
-		}
-		for (String includeLoop : instructions.getAdds()) {
-			serializer.include(includeLoop);
-		}
-		String json = serializer.deepSerialize(entity);		
+		String json = new JSONSerializer().deepSerialize(entity);		
 		Files.write(fileRegister.toPath(), json.getBytes());
 		//TODO balancear arquivos de historia tbm
 		HistoryJornalWriter.writeHistory(fileRegister);

@@ -11,8 +11,6 @@ import br.tec.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionExceptio
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
-import br.tec.jsonprevayler.infrastrutuctre.normalization.JsonSerializationInstructions;
-import br.tec.jsonprevayler.infrastrutuctre.normalization.PrevalentAtributesValuesIdentificator;
 import br.tec.jsonprevayler.pojojsonrepository.core.EntityTokenKey;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.LockPrevalenceEntityTokenFactory;
@@ -47,8 +45,7 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 		entity = memoryCore.getPojo(classeInternal, id);
 		if (entity == null) {
 			throw new ValidationPrevalenceException("Entity not found!");
-		}
-		memoryCore.validateExclusion(entity);
+		}		
 		EntityTokenKey entityToken = LockPrevalenceEntityTokenFactory.get(entity);
 		synchronized (entityToken) {
 			entityToken.setUse("Delete");
@@ -65,7 +62,7 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 				state = OperationState.ENTITY_WRITED;
 				sequenceProvider.get(TotalChangesPrevalenceSystem.class);
 				state = OperationState.PREVALENCE_VERSION_UPDATED;
-				memoryCore.updateMemory(classeInternal, OperationType.DELETE, entity, false);
+				memoryCore.updateMemory(classeInternal, OperationType.DELETE, entity);
 				state = OperationState.MEMORY_UPDATED;
 			} catch (Exception e) {
 				undo();
@@ -81,11 +78,10 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, Exception {
 		switch (state) {
 			case MEMORY_UPDATED: {
-				memoryCore.updateMemory(classeInternal, OperationType.SAVE, entity, false);
+				memoryCore.updateMemory(classeInternal, OperationType.SAVE, entity);
 			}
 			case ENTITY_WRITED: {
-				JsonSerializationInstructions instructions = PrevalentAtributesValuesIdentificator.getJsonSerializationInstructions(entity);
-				fileCore.writeRegister(classeInternal, entity, instructions);
+				fileCore.writeRegister(classeInternal, entity);
 			}
 			default: { 
 				break;

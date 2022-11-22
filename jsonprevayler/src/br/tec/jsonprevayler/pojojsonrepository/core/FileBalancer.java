@@ -12,7 +12,7 @@ import java.util.Map;
 public class FileBalancer {
 	
 	private final String prefixDirName;
-	private final Integer limitForNew;
+	private final Integer limitForNew;//1.000 a 1.000.000 dependendo do sistema de arquivos?
 	private final Path basePath;
 	
 	private Integer filesCounter = 0;
@@ -74,7 +74,7 @@ public class FileBalancer {
 		
 	public synchronized File getNewFile(String fileName) {
 		filesCounter++;
-		if (filesCounter < limitForNew) {
+		if (filesCounter <= limitForNew) {
 			return new File(actualPath.toFile(), fileName);
 		}
 		filesCounter = 1;

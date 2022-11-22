@@ -9,9 +9,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import br.tec.jsonprevayler.infrastrutuctre.normalization.JsonSerializationInstructions;
-import br.tec.jsonprevayler.infrastrutuctre.normalization.MapPrevalenceTransformer;
-import br.tec.jsonprevayler.infrastrutuctre.normalization.PrevalentAtributesValuesIdentificator;
 import br.tec.jsonprevayler.test.entity.MapCollectionEntity;
 import br.tec.jsonprevayler.test.entity.User;
 import flexjson.JSONDeserializer;
@@ -57,15 +54,7 @@ class JsonSerializationTest {
 		mapCollectionEntity.setUsersList(userList);
 		mapCollectionEntity.setUsersMap(userMap);
 		
-		JsonSerializationInstructions jsonInstructions = PrevalentAtributesValuesIdentificator.getJsonSerializationInstructions(mapCollectionEntity);
 		JSONSerializer jsonSerializer = new JSONSerializer();
-		jsonSerializer.transform(new MapPrevalenceTransformer(), Map.class);		
-		for (String add : jsonInstructions.getAdds()) {
-			jsonSerializer.include(add);
-		}
-		for (String ignore : jsonInstructions.getIgnores()) {
-			jsonSerializer.exclude(ignore);
-		}
 		String json = jsonSerializer.deepSerialize(mapCollectionEntity);
 		System.out.println(json);
 		

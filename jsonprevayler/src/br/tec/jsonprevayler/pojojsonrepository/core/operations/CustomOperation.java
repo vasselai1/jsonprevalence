@@ -30,9 +30,6 @@ public abstract class CustomOperation {
 	
 	@SuppressWarnings("rawtypes")
 	public void execute(ComandOperationInterface operation) throws ValidationPrevalenceException, NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, Exception {
-		if (operation instanceof CascadeOperation) {
-			throw new ValidationPrevalenceException("Invalid Operation!");
-		}
 		if (!(operation instanceof CommonsOperations)) {
 			throw new ValidationPrevalenceException("Invalid Operation!");
 		}

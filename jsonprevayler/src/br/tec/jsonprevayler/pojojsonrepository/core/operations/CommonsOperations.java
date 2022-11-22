@@ -7,7 +7,6 @@ import br.tec.jsonprevayler.annotations.MappedSuperClassPrevalenceRepository;
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
-import br.tec.jsonprevayler.infrastrutuctre.normalization.JsonSerializationInstructions;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
 
@@ -35,16 +34,6 @@ public class CommonsOperations <T extends PrevalenceEntity> {
 		}
 		return (Class<T>) classe;
 	}
-	
-	@SuppressWarnings("unchecked")
-	void validateAllRelationsPersisted(JsonSerializationInstructions instructions) throws ValidationPrevalenceException {
-		List<T> values = (List<T>) instructions.getPrevalentObjects();
-		for (T entityLoop : values) {
-			if (entityLoop.getId() == null) {
-				throw new ValidationPrevalenceException("Prevance entity " + entityLoop + " is not persisted");
-			}
-		}
-	}	
 	
 	boolean isPrevalentInstances(List<?> result) {
 		if (result == null) {

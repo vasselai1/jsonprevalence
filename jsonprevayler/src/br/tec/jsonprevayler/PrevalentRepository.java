@@ -36,16 +36,10 @@ public class PrevalentRepository {
 	public <T extends PrevalenceEntity> void save(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, InternalPrevalenceException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, DeprecatedPrevalenceEntityVersionException, InstantiationException, NoSuchMethodException, Exception {
 		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).save(entity);
 	}
-	public <T extends PrevalenceEntity> void saveDeep(T entity) throws ValidationPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchAlgorithmException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, InstantiationException, NoSuchMethodException, Exception {
-		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).saveDeep(entity);
-	}
 	
 	public <T extends PrevalenceEntity> void update(T entity) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, InstantiationException, NoSuchMethodException, Exception {
 		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).update(entity);
 	}
-	public <T extends PrevalenceEntity> void updateDeep(T entity) throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, InstantiationException, NoSuchMethodException, Exception {
-		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).updateDeep(entity);
-	}	
 	
 	public <T extends PrevalenceEntity> void delete(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InternalPrevalenceException, InstantiationException, NoSuchMethodException, Exception {
 		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).delete(entity);

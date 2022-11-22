@@ -12,6 +12,19 @@ import br.tec.jsonprevayler.util.HashUtil;
 class PrevalenceJsonRepositoryTest {
 	
 	//@Test
+	public void testSaveRicardo() throws Exception {
+		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
+		
+		User usuario = new User();
+		usuario.setName("Ricardo Vasselai Paulino");
+		usuario.setMail("vasselai1@gmail.com");
+		usuario.setPasswd("12345");
+		
+		prevalence.save(usuario);
+	}
+
+	
+	//@Test
 	public void testSaveList() throws Exception {
 		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 		
@@ -41,11 +54,11 @@ class PrevalenceJsonRepositoryTest {
 		}
 	}
 
-	//@Test
+	@Test
 	public void testUpdateList() throws Exception {
 		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 	
-		User user = prevalence.getPojo(User.class, 1L);
+		User user = prevalence.getPojo(User.class, 5L);
 		user.setName("Outro nome de teste");
 		prevalence.update(user);
 
@@ -67,7 +80,7 @@ class PrevalenceJsonRepositoryTest {
 		}
 	}	
 	
-	@Test
+	//@Test
 	public void testDeleteList() throws Exception {
 		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 
@@ -92,9 +105,9 @@ class PrevalenceJsonRepositoryTest {
 		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());		
 		
 		long initial = System.currentTimeMillis();
-		int count = 1000;
+		int count = 100;
 		for (int i = 0; i < count; i++) { 
-			String nome = HashUtil.getRandomString(70);
+			String nome = HashUtil.getRandomString(70) + "_" + i;
 			String email = HashUtil.getRandomString(40);
 			String senha = HashUtil.getRandomString(12);
 			User usuario = new User();

@@ -11,49 +11,36 @@ import br.tec.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionExceptio
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
-import br.tec.jsonprevayler.infrastrutuctre.normalization.JsonSerializationInstructions;
-import br.tec.jsonprevayler.infrastrutuctre.normalization.PrevalentAtributesValuesIdentificator;
 import br.tec.jsonprevayler.pojojsonrepository.core.EntityTokenKey;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.LockPrevalenceEntityTokenFactory;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.OperationType;
-import br.tec.jsonprevayler.util.ObjectCopyUtil;
 
 public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperations<T> implements ComandOperationInterface {
 
 	private Class<T> classeInternal;
 	private T entity;
-	private T oldEntity; 
-	private boolean updateDeep;
-	private boolean isCascadeExecuted = false;	
-	private final CascadeOperation<T> cascadeOperation;
-	private JsonSerializationInstructions instructions;
+	private T oldEntity;	
 	private OperationState state = OperationState.INITIALIZED;
 	
 	public UpdateOperation(SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
 		setCore(memoryCore, fileCore, sequenceUtil);
-		cascadeOperation = new CascadeOperation<T>(sequenceUtil, memoryCore, fileCore);
 	}
 	
-	public UpdateOperation<T> set(T entity, boolean updateDeep) {
+	public UpdateOperation<T> set(T entity) {
 		this.entity = entity;
-		this.updateDeep = updateDeep;
 		return this;
 	}
 
 	@Override
 	public void execute() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {
-		classeInternal = getClassRepository(entity.getClass());
-		instructions = PrevalentAtributesValuesIdentificator.getJsonSerializationInstructions(entity);
+		classeInternal = getClassRepository(entity.getClass());		
 		if (entity == null) {
 			throw new ValidationPrevalenceException("Entity is null!");
 		}
 		if (entity.getId() == null) {
 			throw new ValidationPrevalenceException("Id is not seted!");
-		}
-		if (!updateDeep) {
-			validateAllRelationsPersisted(instructions);
 		}
 		EntityTokenKey entityToken = LockPrevalenceEntityTokenFactory.get(entity);
 		synchronized (entityToken) {
@@ -69,17 +56,11 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 			oldEntity = memoryCore.getPojo(classeInternal, entity.getId());
 			state = OperationState.VALIDATED;
 			try {
-				if (updateDeep) {
-					cascadeOperation.set(instructions).execute();				
-					isCascadeExecuted = true;
-					state = OperationState.RELATIONS_SAVED;
-				}
-				T entityUpdate = ObjectCopyUtil.copyEntity(entity);
-				fileCore.writeRegister(classeInternal, entityUpdate, instructions);
+				fileCore.writeRegister(classeInternal, entity);
 				state = OperationState.ENTITY_WRITED;
 				sequenceProvider.get(TotalChangesPrevalenceSystem.class);
 				state = OperationState.PREVALENCE_VERSION_UPDATED;
-				memoryCore.updateMemory(classeInternal, OperationType.UPDATE, entityUpdate, updateDeep);
+				memoryCore.updateMemory(classeInternal, OperationType.UPDATE, entity);
 				state = OperationState.MEMORY_UPDATED;
 			} catch (Exception e) {
 				undo();
@@ -94,15 +75,10 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {
 		switch (state) {
 			case MEMORY_UPDATED: {
-				memoryCore.updateMemory(classeInternal, OperationType.UPDATE, oldEntity, updateDeep);
+				memoryCore.updateMemory(classeInternal, OperationType.UPDATE, oldEntity);
 			}
 			case ENTITY_WRITED: {
-				fileCore.writeRegister(classeInternal, oldEntity, instructions);
-			}
-			case RELATIONS_SAVED: {
-				if (isCascadeExecuted) {
-					cascadeOperation.undo();
-				}
+				fileCore.writeRegister(classeInternal, oldEntity);
 			}
 			case VALIDATED: {
 				if (entity instanceof VersionedEntity) {
