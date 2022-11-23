@@ -12,7 +12,6 @@ import br.tec.jsonprevayler.annotations.MappedSuperClassPrevalenceRepository;
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.PrevalenceChangeObserver;
-import br.tec.jsonprevayler.util.ObjectCopyUtil;
 import flexjson.JSONSerializer;
 
 public class MemoryCore implements MemorySearchEngineInterface {
@@ -100,7 +99,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 	@SuppressWarnings("unchecked")
 	public <T extends PrevalenceEntity> T getPojo(Class<T> classe, Long id) throws IOException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		classe = updateMemory(classe, OperationType.INITIALIZE, null);
-		return (T) ObjectCopyUtil.copyEntity(pojoRepository.get(classe).get(id));
+		return (T) pojoRepository.get(classe).get(id);
 	}	
 	
 	public <T extends PrevalenceEntity> String getJson(Class<T> classe, Long id) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {

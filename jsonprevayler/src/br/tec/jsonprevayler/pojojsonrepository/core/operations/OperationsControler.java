@@ -22,6 +22,7 @@ import br.tec.jsonprevayler.pojojsonrepository.core.MemorySearchEngineInterface;
 import br.tec.jsonprevayler.searchfilter.FilterFirst;
 import br.tec.jsonprevayler.searchfilter.PrevalenceFilter;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
+import br.tec.jsonprevayler.util.ObjectCopyUtil;
 
 public class OperationsControler <T extends PrevalenceEntity> {
  	
@@ -71,7 +72,7 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	}
 	
 	public T getPojo(Class<T> classe, Long id) throws ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, ValidationPrevalenceException, InterruptedException {
-		return memoryCore.getPojo(classe, id);
+		return ObjectCopyUtil.copyEntity(memoryCore.getPojo(classe, id));
 	} 
 	
 	public String getJson(Class<T> classe, Long id) throws ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ValidationPrevalenceException, IOException, InterruptedException {
@@ -79,7 +80,7 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	}
 	
 	public T getFirstPojo(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
-		return filterOperation.getFirstPojo(classe, filterFirst);
+		return ObjectCopyUtil.copyEntity(filterOperation.getFirstPojo(classe, filterFirst));
 	}
 	
 	public String getFirstJson(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
@@ -87,10 +88,10 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	}
 	
 	public List<T> listPojo(Class<T> classe) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-		return filterOperation.listPojo(classe);
+		return ObjectCopyUtil.copyList(classe,filterOperation.listPojo(classe));
 	}
 	public List<T> listPojo(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-		return filterOperation.listPojo(classe, filter);
+		return ObjectCopyUtil.copyList(classe, filterOperation.listPojo(classe, filter));
 	}
 
 	public String listJson(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
@@ -111,7 +112,7 @@ public class OperationsControler <T extends PrevalenceEntity> {
 
 	@SuppressWarnings({ "rawtypes" })
 	public Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
-		return joSqlOperation.joSqlQueryGroupMap(classe, joSqlQuery, parametersBind);
+		return ObjectCopyUtil.copyEntity(joSqlOperation.joSqlQueryGroupMap(classe, joSqlQuery, parametersBind));
 	}
 	
 	public static void registerObserver(PrevalenceChangeObserver observer) {

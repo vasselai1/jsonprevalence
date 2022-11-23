@@ -11,7 +11,6 @@ import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
 import br.tec.jsonprevayler.searchfilter.FilterFirst;
 import br.tec.jsonprevayler.searchfilter.PrevalenceFilter;
 import br.tec.jsonprevayler.searchfilter.processing.SearchProcessor;
-import br.tec.jsonprevayler.util.ObjectCopyUtil;
 import flexjson.JSONSerializer;
 
 public class FilterOperation <T extends PrevalenceEntity> {
@@ -41,15 +40,15 @@ public class FilterOperation <T extends PrevalenceEntity> {
 	}	
 	
 	public List<T> listPojo(Class<T> classe) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-		return ObjectCopyUtil.copyList(classe, memoryCore.getValues(classe));
+		return new ArrayList<T>(memoryCore.getValues(classe));
 	}	
 	
 	public List<T> listPojo(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-		return list(classe, filter, true);
+		return list(classe, filter);
 	}
 	
 	public String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-		List<T> filtrados = list(classe, filter, false);
+		List<T> filtrados = list(classe, filter);
 		List<String> retorno = new ArrayList<String>();
 		for (T entityLoop : filtrados) {
 			String json = memoryCore.getJson(classe, entityLoop.getId());
@@ -58,7 +57,7 @@ public class FilterOperation <T extends PrevalenceEntity> {
 		return new JSONSerializer().serialize(retorno);
 	}	
 	
-	private List<T> list(Class<T> classe, PrevalenceFilter<T> filter, boolean secureCopy) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
+	private List<T> list(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
 		List<T> retorno = new ArrayList<T>();		
 		filter.setMemorySearchEngine(memoryCore);
 		searchProcessor.setMemorySearchEngine(memoryCore);
@@ -72,10 +71,7 @@ public class FilterOperation <T extends PrevalenceEntity> {
 		if (filter.getPageSize() <= 0) {
 			return retorno;
 		}
-		if (!secureCopy) {
-			retorno.subList(filter.getFirstResult(), finalRegister);
-		}
-		return ObjectCopyUtil.copyList(classe, retorno.subList(filter.getFirstResult(), finalRegister));
+		return retorno.subList(filter.getFirstResult(), finalRegister);	
 	}	
 
 	public T getFirstPojo(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
@@ -93,9 +89,6 @@ public class FilterOperation <T extends PrevalenceEntity> {
 	private T getFirst(Class<T> classe, FilterFirst<T> filterFirst, boolean secureCopy) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
 		for (T entityLoop : memoryCore.getValues(classe)) {
 			if (filterFirst.isAcepted(entityLoop)) {
-				if (secureCopy) {
-					return ObjectCopyUtil.copyEntity(entityLoop);
-				}
 				return entityLoop;
 			}
 		}

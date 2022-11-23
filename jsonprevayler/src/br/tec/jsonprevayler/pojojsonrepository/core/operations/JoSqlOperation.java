@@ -3,7 +3,6 @@ package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,36 +57,11 @@ public class JoSqlOperation <T extends PrevalenceEntity> extends CommonsOperatio
 		return ObjectCopyUtil.copyList(classe, (Collection<T>) result);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings("rawtypes")
 	public Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
 		Query query = initQueryJoSql(joSqlQuery, parametersBind);
 		QueryResults queryResults = query.execute(memoryCore.getValues(classe));
-		Map result = queryResults.getGroupByResults();
-		boolean isValuesPrevalentInstances = false;
-		boolean isKeysPrevalentInstances = false;
-		if (result == null) {
-			return result;
-		}
-		for (Object objectLoop : result.values()) {
-			if (objectLoop instanceof PrevalenceEntity) {
-				isValuesPrevalentInstances = true;
-				break;
-			}
-		}
-		for (Object objectLoop : result.keySet()) {
-			if (objectLoop instanceof PrevalenceEntity) {
-				isKeysPrevalentInstances = true;
-				break;
-			}
-		}		
-		if (isValuesPrevalentInstances || isKeysPrevalentInstances) {
-			 Map copiedMap = new HashMap();
-			 for (Object keyLoop : result.keySet()) {
-				 copiedMap.put(ObjectCopyUtil.copyEntity(keyLoop), ObjectCopyUtil.copyEntity(result.get(keyLoop)));
-			 }
-			 return copiedMap;
-		}
-		return result;
+		return queryResults.getGroupByResults();
 	}	
 	
 }
