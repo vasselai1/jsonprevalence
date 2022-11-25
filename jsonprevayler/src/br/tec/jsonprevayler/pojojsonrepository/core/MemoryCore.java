@@ -3,12 +3,15 @@ package br.tec.jsonprevayler.pojojsonrepository.core;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import br.tec.jsonprevayler.annotations.MappedSuperClassPrevalenceRepository;
+import br.tec.jsonprevayler.entity.OperationLog;
+import br.tec.jsonprevayler.entity.OperationStatus;
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.PrevalenceChangeObserver;
@@ -16,6 +19,7 @@ import flexjson.JSONSerializer;
 
 public class MemoryCore implements MemorySearchEngineInterface {
 	
+	private static final List<Class<? extends PrevalenceEntity>> controlClasses = Arrays.asList(OperationLog.class, OperationStatus.class);
 	private static Map<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>> pojoRepository = null;
 	private static final List<PrevalenceChangeObserver> observers = new ArrayList<PrevalenceChangeObserver>();
 	private static boolean inMaintenance = false;
@@ -80,6 +84,9 @@ public class MemoryCore implements MemorySearchEngineInterface {
 		pojoRepository = new HashMap<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>>();		
 		List<Class<? extends PrevalenceEntity>> initializedPrevalentClasses = new ArrayList<Class<? extends PrevalenceEntity>>();
 		for (Class<? extends PrevalenceEntity> classe : fileCore.listAllPrevalentClasses()) {			
+			if (ignoreLoad(classe)) {
+				continue;
+			}
 			Class<? extends PrevalenceEntity> classeRepository = getClassRepository(classe);
 			pojoRepository.put(classeRepository, new HashMap<Long, PrevalenceEntity>());
 			List<? extends PrevalenceEntity> registries = fileCore.readRegistries(classe);
@@ -89,6 +96,11 @@ public class MemoryCore implements MemorySearchEngineInterface {
 			initializedPrevalentClasses.add(classeRepository);
 		}
 	}
+	
+	private static <T extends PrevalenceEntity> boolean ignoreLoad(Class<T> classe) {
+		return controlClasses.contains(classe);
+	}
+	
 	
 	@Override
 	public <T extends PrevalenceEntity> Integer count(Class<T> classe) throws ValidationPrevalenceException, ClassNotFoundException, IOException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {

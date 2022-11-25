@@ -105,7 +105,14 @@ public class FileCore {
 	}
 	
 	public <T extends PrevalenceEntity> void writeRegister(Class<T> classe, T entity) throws IOException, NoSuchAlgorithmException {
+		writeRegister(classe, entity, false);
+	}
+	
+	public <T extends PrevalenceEntity> void writeRegister(Class<T> classe, T entity, boolean isControlFile) throws IOException, NoSuchAlgorithmException {
 		FileBalancer fileBalancer = getFileBalancer(classe);
+		if (fileBalancer.isActualPathNotInitialized()) {
+			fileBalancer.listBalancedDirectories();
+		}
 		Path fileRegisterPath = fileBalancer.getPath(entity.getId());		
 		OperationType operationType = OperationType.UPDATE;
 		File fileRegister = null;
@@ -119,9 +126,10 @@ public class FileCore {
 		}
 		String json = new JSONSerializer().deepSerialize(entity);		
 		Files.write(fileRegister.toPath(), json.getBytes());
-		//TODO balancear arquivos de historia tbm
-		HistoryJornalWriter.writeHistory(fileRegister);
-		HistoryJornalWriter.appendJournal(getFilePath(classe), operationType, entity.getId(), json);
+		if (!isControlFile) {
+			HistoryJornalWriter.writeHistory(fileRegister);
+			HistoryJornalWriter.appendJournal(getFilePath(classe), operationType, entity.getId(), json);
+		}
 	}
 	
 	public <T extends PrevalenceEntity> void deleteRegister(Class<T> classe, Long id) throws IOException, NoSuchAlgorithmException {

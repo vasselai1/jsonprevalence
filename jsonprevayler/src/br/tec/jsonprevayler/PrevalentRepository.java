@@ -64,11 +64,11 @@ public class PrevalentRepository {
 		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).getJson(classe, id);
 	}
 	
-	public <T extends PrevalenceEntity> T getFirstPojo(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
+	public <T extends PrevalenceEntity> T getFirstPojo(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException, NoSuchAlgorithmException {
 		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).getFirstPojo(classe, filterFirst);
 	}
 	
-	public <T extends PrevalenceEntity> String getFirstJson(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
+	public <T extends PrevalenceEntity> String getFirstJson(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException, NoSuchAlgorithmException {
 		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).getFirstJson(classe, filterFirst);
 	}
 	

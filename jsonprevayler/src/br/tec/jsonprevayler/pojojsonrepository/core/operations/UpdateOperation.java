@@ -11,6 +11,7 @@ import br.tec.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionExceptio
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
+import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.EntityTokenKey;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.LockPrevalenceEntityTokenFactory;
@@ -24,8 +25,8 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 	private T oldEntity;	
 	private OperationState state = OperationState.INITIALIZED;
 	
-	public UpdateOperation(SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
-		setCore(memoryCore, fileCore, sequenceUtil);
+	public UpdateOperation(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
+		setCore(prevalenceConfigurator, memoryCore, fileCore, sequenceUtil);
 	}
 	
 	public UpdateOperation<T> set(T entity) {
@@ -35,7 +36,8 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 
 	@Override
 	public void execute() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {
-		classeInternal = getClassRepository(entity.getClass());		
+		classeInternal = getClassRepository(entity.getClass());
+		initState(classeInternal, entity);
 		if (entity == null) {
 			throw new ValidationPrevalenceException("Entity is null!");
 		}
@@ -43,6 +45,7 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 			throw new ValidationPrevalenceException("Id is not seted!");
 		}
 		EntityTokenKey entityToken = LockPrevalenceEntityTokenFactory.get(entity);
+		updateState(OperationState.INIT_LOCK);
 		synchronized (entityToken) {
 			entityToken.setUse("Update");
 			if (entity instanceof VersionedEntity) {
@@ -54,19 +57,22 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 				newVersionedEntity.setVersion(oldVersionedEntity.getVersion() + 1);
 			}
 			oldEntity = memoryCore.getPojo(classeInternal, entity.getId());
-			state = OperationState.VALIDATED;
+			updateState(OperationState.VALIDATED);
 			try {
 				fileCore.writeRegister(classeInternal, entity);
-				state = OperationState.ENTITY_WRITED;
+				updateState(OperationState.ENTITY_WRITED);
 				sequenceProvider.get(TotalChangesPrevalenceSystem.class);
-				state = OperationState.PREVALENCE_VERSION_UPDATED;
+				updateState(OperationState.PREVALENCE_VERSION_UPDATED);
 				memoryCore.updateMemory(classeInternal, OperationType.UPDATE, entity);
-				state = OperationState.MEMORY_UPDATED;
+				updateState(OperationState.MEMORY_UPDATED);
+				updateState(OperationState.FINALIZED);
 			} catch (Exception e) {
 				undo();
+				updateState(OperationState.CANCELED, e.getMessage());
 				throw e;
 			} finally {
 				entityToken.setEnd();
+				updateState(OperationState.LOCK_FINALIZED);
 			}
 		}		
 	}
@@ -76,14 +82,17 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 		switch (state) {
 			case MEMORY_UPDATED: {
 				memoryCore.updateMemory(classeInternal, OperationType.UPDATE, oldEntity);
+				updateState(OperationState.UNDO_DELETE_MEMORY);
 			}
 			case ENTITY_WRITED: {
 				fileCore.writeRegister(classeInternal, oldEntity);
+				updateState(OperationState.UNDO_DELETE_REGISTER);
 			}
 			case VALIDATED: {
 				if (entity instanceof VersionedEntity) {
 					VersionedEntity versionedEntity = (VersionedEntity) entity;
 					versionedEntity.setVersion(versionedEntity.getVersion() - 1);
+					updateState(OperationState.UNDO_VERSION);
 				}
 			}		
 			default: { 

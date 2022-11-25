@@ -3,7 +3,6 @@ package br.tec.jsonprevayler.infrastrutuctre.configuration;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
-import br.tec.jsonprevayler.pojojsonrepository.core.InitializationMemoryCoreType;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 public class PropertiesPrevalenceConfigurator implements PrevalenceConfigurator {
@@ -32,12 +31,12 @@ public class PropertiesPrevalenceConfigurator implements PrevalenceConfigurator 
 	}
 
 	@Override
-	public InitializationMemoryCoreType getInitializationMemoryCoreType() {
-		return InitializationMemoryCoreType.valueOf(properties.getProperty("initializationMemoryCoreType"));
+	public Integer getNumberOfFilesPerDiretory() {
+		return Integer.parseInt(properties.getProperty("numberOfFilesPerDiretory"));
 	}
 
 	@Override
-	public Integer getNumberOfFilesPerDiretory() {
-		return Integer.parseInt(properties.getProperty("numberOfFilesPerDiretory"));
+	public boolean isStoreOperationsDetails() {
+		return Boolean.parseBoolean(properties.getProperty("storeOperationsDetails"));
 	}
 }

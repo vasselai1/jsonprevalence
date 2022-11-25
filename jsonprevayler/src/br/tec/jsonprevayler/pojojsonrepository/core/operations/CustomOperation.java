@@ -12,17 +12,20 @@ import br.tec.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionExceptio
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
+import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
 
 public abstract class CustomOperation {
 
+	private PrevalenceConfigurator prevalenceConfigurator;
 	private SequenceProvider sequenceProvider;
 	private MemoryCore memoryCore;
 	private FileCore fileCore;
 	private List<ComandOperationInterface> executedOperations = new ArrayList<ComandOperationInterface>();
 	
-	void initialize(SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
+	void initialize(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
+		this.prevalenceConfigurator = prevalenceConfigurator;
 		this.sequenceProvider = sequenceUtil;
 		this.memoryCore = memoryCore;
 		this.fileCore = fileCore;
@@ -37,7 +40,7 @@ public abstract class CustomOperation {
 		if (!(operation.getEntity() instanceof VersionedEntity)) {
 			throw new ValidationPrevalenceException("Entity isn't Versioned!");
 		}
-		((CommonsOperations) operation).setCore(memoryCore, fileCore, sequenceProvider);		
+		((CommonsOperations) operation).setCore(prevalenceConfigurator, memoryCore, fileCore, sequenceProvider);		
 		operation.execute();
 		executedOperations.add(operation);
 	}

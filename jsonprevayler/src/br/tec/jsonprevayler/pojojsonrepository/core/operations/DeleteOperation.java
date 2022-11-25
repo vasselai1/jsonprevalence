@@ -11,6 +11,7 @@ import br.tec.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionExceptio
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
+import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.EntityTokenKey;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.LockPrevalenceEntityTokenFactory;
@@ -23,8 +24,8 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 	private Class<T> classeInternal;
 	private OperationState state = OperationState.INITIALIZED;
 	
-	public DeleteOperation(MemoryCore memoryCore, FileCore fileCore, SequenceProvider sequenceProvider) {
-		setCore(memoryCore, fileCore, sequenceProvider);
+	public DeleteOperation(PrevalenceConfigurator prevalenceConfigurator, MemoryCore memoryCore, FileCore fileCore, SequenceProvider sequenceProvider) {
+		setCore(prevalenceConfigurator, memoryCore, fileCore, sequenceProvider);
 	}
 
 	public DeleteOperation<T> set(T entity) {
@@ -41,8 +42,9 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 		if (id == null) {
 			throw new ValidationPrevalenceException("Id is null!");
 		}
-		classeInternal = getClassRepository(entity.getClass());
+		classeInternal = getClassRepository(entity.getClass());		
 		entity = memoryCore.getPojo(classeInternal, id);
+		initState(classeInternal, entity);
 		if (entity == null) {
 			throw new ValidationPrevalenceException("Entity not found!");
 		}		
@@ -56,16 +58,18 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 					throw new DeprecatedPrevalenceEntityVersionException(classeInternal.getCanonicalName(), newVersionedEntity.getVersion(), oldVersionedEntity.getVersion());
 				}				
 			}
-			state = OperationState.VALIDATED;
+			updateState(OperationState.VALIDATED);
 			try {
 				fileCore.deleteRegister(classeInternal, id);
-				state = OperationState.ENTITY_WRITED;
+				updateState(OperationState.ENTITY_WRITED);
 				sequenceProvider.get(TotalChangesPrevalenceSystem.class);
-				state = OperationState.PREVALENCE_VERSION_UPDATED;
+				updateState(OperationState.PREVALENCE_VERSION_UPDATED);
 				memoryCore.updateMemory(classeInternal, OperationType.DELETE, entity);
-				state = OperationState.MEMORY_UPDATED;
+				updateState(OperationState.MEMORY_UPDATED);
+				updateState(OperationState.FINALIZED);
 			} catch (Exception e) {
 				undo();
+				updateState(OperationState.CANCELED, e.getMessage());
 				throw e;
 			} finally {
 				entityToken.setEnd();
@@ -79,9 +83,11 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 		switch (state) {
 			case MEMORY_UPDATED: {
 				memoryCore.updateMemory(classeInternal, OperationType.SAVE, entity);
+				updateState(OperationState.UNDO_SAVE_MEMORY);
 			}
 			case ENTITY_WRITED: {
 				fileCore.writeRegister(classeInternal, entity);
+				updateState(OperationState.UNDO_SAVE_REGISTER);
 			}
 			default: { 
 				break;

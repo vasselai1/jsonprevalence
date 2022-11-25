@@ -84,5 +84,8 @@ public class FileBalancer {
 		actualPath = newDir.toPath();
 		return new File(newDir, fileName);
 	}	
-		
+	
+	public boolean isActualPathNotInitialized() {
+		return (actualPath == null);
+	}
 }

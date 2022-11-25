@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
-import br.tec.jsonprevayler.pojojsonrepository.core.InitializationMemoryCoreType;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 public class ResourcePropertiesFileConfigurator implements PrevalenceConfigurator {
@@ -37,13 +36,13 @@ public class ResourcePropertiesFileConfigurator implements PrevalenceConfigurato
 	}
 
 	@Override
-	public InitializationMemoryCoreType getInitializationMemoryCoreType() {
-		return propertiesConfigurator.getInitializationMemoryCoreType();
+	public Integer getNumberOfFilesPerDiretory() {
+		return propertiesConfigurator.getNumberOfFilesPerDiretory();
 	}
 
 	@Override
-	public Integer getNumberOfFilesPerDiretory() {
-		return propertiesConfigurator.getNumberOfFilesPerDiretory();
+	public boolean isStoreOperationsDetails() {
+		return propertiesConfigurator.isStoreOperationsDetails();
 	}
 
 }

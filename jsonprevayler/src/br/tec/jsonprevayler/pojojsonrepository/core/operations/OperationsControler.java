@@ -26,6 +26,7 @@ import br.tec.jsonprevayler.util.ObjectCopyUtil;
 
 public class OperationsControler <T extends PrevalenceEntity> {
  	
+	private final PrevalenceConfigurator prevalenceConfigurator;
 	private final FileCore fileCore;
 	private final MemoryCore memoryCore;	
 	private final SequenceProvider sequenceProvider;	
@@ -36,14 +37,15 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	private final JoSqlOperation<T> joSqlOperation;
 
 	public OperationsControler(PrevalenceConfigurator prevalenceConfigurator, SearchProcessorFactory searchProcessorFactory) {
+		this.prevalenceConfigurator = prevalenceConfigurator;
 		fileCore = new FileCore(prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getSystemName(), prevalenceConfigurator.getNumberOfFilesPerDiretory());
 		memoryCore = new MemoryCore(fileCore);
 		sequenceProvider = new SequenceProvider(fileCore.getSystemPath());		
-		saveOperation = new SaveOperation<T>(sequenceProvider, memoryCore, fileCore);
-		updateOperation = new UpdateOperation<T>(sequenceProvider, memoryCore, fileCore);
-		deleteOperation = new DeleteOperation<T>(memoryCore, fileCore, sequenceProvider);
-		filterOperation = new FilterOperation<T>(memoryCore, searchProcessorFactory.createNewSearchProcessor());
-		joSqlOperation = new JoSqlOperation<T>(memoryCore);
+		saveOperation = new SaveOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
+		updateOperation = new UpdateOperation<T>(prevalenceConfigurator,sequenceProvider, memoryCore, fileCore);
+		deleteOperation = new DeleteOperation<T>(prevalenceConfigurator, memoryCore, fileCore, sequenceProvider);
+		filterOperation = new FilterOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore, searchProcessorFactory.createNewSearchProcessor());
+		joSqlOperation = new JoSqlOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
 	}
 
 	public void save(T entity) throws ValidationPrevalenceException, IOException, NoSuchAlgorithmException, ClassNotFoundException, InternalPrevalenceException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, DeprecatedPrevalenceEntityVersionException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {
@@ -60,7 +62,7 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	
 	public <Z extends CustomOperation> Z newAtomicOperation(Class<Z> classeCustomOperation)  throws ValidationPrevalenceException, IOException, ClassNotFoundException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, InternalPrevalenceException, InstantiationException, NoSuchMethodException {
 		Z customOperation = classeCustomOperation.getDeclaredConstructor().newInstance();
-		customOperation.initialize(sequenceProvider, memoryCore, fileCore);
+		customOperation.initialize(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
 		return customOperation;
 	}
 	
@@ -79,18 +81,18 @@ public class OperationsControler <T extends PrevalenceEntity> {
 		return memoryCore.getJson(classe, id);
 	}
 	
-	public T getFirstPojo(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
+	public T getFirstPojo(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException, NoSuchAlgorithmException {
 		return ObjectCopyUtil.copyEntity(filterOperation.getFirstPojo(classe, filterFirst));
 	}
 	
-	public String getFirstJson(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException {
+	public String getFirstJson(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException, NoSuchAlgorithmException {
 		return filterOperation.getFirstJson(classe, filterFirst);
 	}
 	
 	public List<T> listPojo(Class<T> classe) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
 		return ObjectCopyUtil.copyList(classe,filterOperation.listPojo(classe));
 	}
-	public List<T> listPojo(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
+	public List<T> listPojo(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchAlgorithmException {
 		return ObjectCopyUtil.copyList(classe, filterOperation.listPojo(classe, filter));
 	}
 
@@ -98,20 +100,20 @@ public class OperationsControler <T extends PrevalenceEntity> {
 		return filterOperation.listJson(classe);
 	}
 	
-	public String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
+	public String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchAlgorithmException {
 		return filterOperation.listJson(classe, filter);
 	}	
 	
-	public List<?> joSqlQueryList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+	public List<?> joSqlQueryList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException, NoSuchAlgorithmException {
 		return joSqlOperation.joSqlQueryList(classe, joSqlQuery, parametersBind);
 	}
 
-	public List<?> joSqlQueryHavingList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+	public List<?> joSqlQueryHavingList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException, NoSuchAlgorithmException {
 		return joSqlOperation.joSqlQueryHavingList(classe, joSqlQuery, parametersBind);
 	}
 
 	@SuppressWarnings({ "rawtypes" })
-	public Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+	public Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException, NoSuchAlgorithmException {
 		return ObjectCopyUtil.copyEntity(joSqlOperation.joSqlQueryGroupMap(classe, joSqlQuery, parametersBind));
 	}
 	

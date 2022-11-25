@@ -11,6 +11,7 @@ import br.tec.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionExceptio
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
+import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.OperationType;
@@ -20,16 +21,15 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 
 	private T entity;
 	private Class<T> classeInternal;
-	private OperationState state = OperationState.INITIALIZED;
 	
 	public SaveOperation() { }
 	
-	public SaveOperation(SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
-		setCore(sequenceUtil, memoryCore, fileCore);
+	public SaveOperation(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
+		setCore(prevalenceConfigurator, sequenceUtil, memoryCore, fileCore);
 	}
 
-	public void setCore(SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
-		setCore(memoryCore, fileCore, sequenceUtil);
+	public void setCore(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
+		setCore(prevalenceConfigurator, memoryCore, fileCore, sequenceUtil);
 	}
 
 	public SaveOperation<T> set(T entity) {
@@ -38,7 +38,8 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 	}
 	
 	public void execute() throws ValidationPrevalenceException, IOException, InternalPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {		
-		classeInternal = getClassRepository(entity.getClass());						
+		classeInternal = getClassRepository(entity.getClass());
+		initState(classeInternal, entity);
 		if (classeInternal == null) {
 			throw new ValidationPrevalenceException("Classe is null!");
 		}
@@ -49,6 +50,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 			throw new ValidationPrevalenceException("Id is seted!");
 		}		
 		Long id = sequenceProvider.get(classeInternal);
+		updateState(OperationState.ID_CREATED);
 		if (memoryCore.isIdUsed(classeInternal, id)) {
 			throw new InternalPrevalenceException("Id " + id + " is repeated! Please see the max value id in entities " + entity.getClass().getCanonicalName() + " and set +1 in sequence file!");
 		}
@@ -59,32 +61,38 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 			}
 			newVersionedEntity.setVersion(1L);
 		}
+		updateState(OperationState.VALIDATED);
 		entity.setId(id);
-		state = OperationState.VALIDATED;
 		try {
 			T entitySave = ObjectCopyUtil.copyEntity(entity);
+			updateState(OperationState.BINARY_COPY_OK);
 			fileCore.writeRegister(classeInternal, entitySave);
-			state = OperationState.ENTITY_WRITED;
+			updateState(OperationState.ENTITY_WRITED);
 			sequenceProvider.get(TotalChangesPrevalenceSystem.class);
-			state = OperationState.PREVALENCE_VERSION_UPDATED;
+			updateState(OperationState.PREVALENCE_VERSION_UPDATED);
 			memoryCore.updateMemory(classeInternal, OperationType.SAVE, entitySave);
-			state = OperationState.MEMORY_UPDATED;
+			updateState(OperationState.MEMORY_UPDATED);
+			updateState(OperationState.FINALIZED);
 		} catch (Exception e) {
 			undo();
+			updateState(OperationState.CANCELED, e.getMessage());
 			throw e;
 		}
 	}	
 	
 	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {
-		switch (state) {
+		switch (getState()) {
 			case MEMORY_UPDATED: {
 				memoryCore.updateMemory(classeInternal, OperationType.DELETE, entity);
+				updateState(OperationState.UNDO_DELETE_MEMORY);
 			}
 			case ENTITY_WRITED: {
 				fileCore.deleteRegister(classeInternal, entity.getId());
+				updateState(OperationState.UNDO_DELETE_REGISTER);
 			}
 			case VALIDATED: {
 				entity.setId(null);
+				updateState(OperationState.UNDO_SET_NULL_ID);
 			}
 			default: { 
 				break;

@@ -2,7 +2,6 @@ package br.tec.jsonprevayler.infrastrutuctre.configuration;
 
 import java.lang.reflect.InvocationTargetException;
 
-import br.tec.jsonprevayler.pojojsonrepository.core.InitializationMemoryCoreType;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 public class SystemPropertiesPrevalenceConfigurator implements PrevalenceConfigurator {
@@ -25,13 +24,13 @@ public class SystemPropertiesPrevalenceConfigurator implements PrevalenceConfigu
 	}
 
 	@Override
-	public InitializationMemoryCoreType getInitializationMemoryCoreType() {
-		return InitializationMemoryCoreType.valueOf(System.getProperty("br.tec.jsonprevayler.initializationMemoryCoreType"));
+	public Integer getNumberOfFilesPerDiretory() {
+		return Integer.parseInt(System.getProperty("br.tec.jsonprevayler.numberOfFilesPerDiretory"));
 	}
 
 	@Override
-	public Integer getNumberOfFilesPerDiretory() {
-		return Integer.parseInt(System.getProperty("br.tec.jsonprevayler.numberOfFilesPerDiretory"));
+	public boolean isStoreOperationsDetails() {
+		return Boolean.parseBoolean(System.getProperty("br.tec.jsonprevayler.storeOperationsDetails"));
 	}
 
 }

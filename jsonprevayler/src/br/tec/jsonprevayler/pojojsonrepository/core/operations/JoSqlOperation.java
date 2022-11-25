@@ -2,7 +2,8 @@ package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
+import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -13,18 +14,22 @@ import org.josql.QueryResults;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
+import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
+import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
+import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
-import br.tec.jsonprevayler.util.ObjectCopyUtil;
 
 public class JoSqlOperation <T extends PrevalenceEntity> extends CommonsOperations<T> {
 
 	private final MemoryCore memoryCore;
-	
-	public JoSqlOperation(MemoryCore memoryCore) {
+		
+	public JoSqlOperation(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
+		this.prevalenceConfigurator = prevalenceConfigurator;
 		this.memoryCore = memoryCore;
+		setCore(prevalenceConfigurator, memoryCore, fileCore, sequenceUtil);
 	}
 
-	private Query initQueryJoSql(String joSqlQuery, Map<String, Object> parametersBind) throws IOException, ValidationPrevalenceException, QueryParseException {		
+	private Query initQueryJoSql(String joSqlQuery, Map<String, Object> parametersBind) throws IOException, ValidationPrevalenceException, QueryParseException {	
 		Query query = new Query();
 		query.parse(joSqlQuery);
 		if (parametersBind != null) {
@@ -35,33 +40,29 @@ public class JoSqlOperation <T extends PrevalenceEntity> extends CommonsOperatio
 		return query;
 	}
 	
-	public List<?> joSqlQueryList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+	public List<?> joSqlQueryList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException, NoSuchAlgorithmException {
+		initStateAssinc(classe, classe, new Date());
 		Query query = initQueryJoSql(joSqlQuery, parametersBind);
 		QueryResults queryResults = query.execute(memoryCore.getValues(classe));
-		List<?> result = queryResults.getResults();
-		return returnSercure(classe, result);
+		updateStateAssinc(OperationState.FINALIZED, new Date());
+		return queryResults.getResults();		
 	}
 
-	public List<?> joSqlQueryHavingList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+	public List<?> joSqlQueryHavingList(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException, NoSuchAlgorithmException {
+		initStateAssinc(classe, classe, new Date());
 		Query query = initQueryJoSql(joSqlQuery, parametersBind);
 		QueryResults queryResults = query.execute(memoryCore.getValues(classe));
-		List<?> result = queryResults.getHavingResults();
-		return returnSercure(classe, result);
-	}
-
-	@SuppressWarnings("unchecked")
-	private List<?> returnSercure(Class<T> classe, List<?> result) throws ClassNotFoundException, IOException {
-		if (!isPrevalentInstances(result)) {
-			return result;
-		}
-		return ObjectCopyUtil.copyList(classe, (Collection<T>) result);
+		updateStateAssinc(OperationState.FINALIZED, new Date());
+		return queryResults.getHavingResults();
 	}
 
 	@SuppressWarnings("rawtypes")
-	public Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+	public Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws ValidationPrevalenceException, IOException, QueryParseException, QueryExecutionException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException, NoSuchAlgorithmException {
+		initStateAssinc(classe, classe, new Date());
 		Query query = initQueryJoSql(joSqlQuery, parametersBind);
 		QueryResults queryResults = query.execute(memoryCore.getValues(classe));
+		updateStateAssinc(OperationState.FINALIZED, new Date());
 		return queryResults.getGroupByResults();
-	}	
+	}
 	
 }

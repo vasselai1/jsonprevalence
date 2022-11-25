@@ -11,7 +11,7 @@ import br.tec.jsonprevayler.util.HashUtil;
 
 class PrevalenceJsonRepositoryTest {
 	
-	//@Test
+	@Test
 	public void testSaveRicardo() throws Exception {
 		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 		
@@ -24,7 +24,7 @@ class PrevalenceJsonRepositoryTest {
 	}
 
 	
-	//@Test
+	@Test
 	public void testSaveList() throws Exception {
 		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 		
@@ -54,7 +54,7 @@ class PrevalenceJsonRepositoryTest {
 		}
 	}
 
-	@Test
+	//@Test
 	public void testUpdateList() throws Exception {
 		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 	

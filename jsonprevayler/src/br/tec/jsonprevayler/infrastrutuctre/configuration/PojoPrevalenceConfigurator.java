@@ -1,6 +1,5 @@
 package br.tec.jsonprevayler.infrastrutuctre.configuration;
 
-import br.tec.jsonprevayler.pojojsonrepository.core.InitializationMemoryCoreType;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 public class PojoPrevalenceConfigurator implements PrevalenceConfigurator {
@@ -8,19 +7,19 @@ public class PojoPrevalenceConfigurator implements PrevalenceConfigurator {
 	private SearchProcessorFactory searchProcessorFactory;
 	private String prevalencePath;
 	private String systemName;
-	private InitializationMemoryCoreType initializationMemoryCoreType;
 	private Integer numberOfFilesPerDiretory;
+	private boolean storeOperationsDetails = true;
 
 	public PojoPrevalenceConfigurator(SearchProcessorFactory searchProcessorFactory, 
 									  String prevalencePath, 
-									  String systemName, 
-									  InitializationMemoryCoreType initializationMemoryCoreType, 
-									  Integer numberOfFilesPerDiretory) {
+									  String systemName,
+									  Integer numberOfFilesPerDiretory,
+									  boolean storeOperationsDetails) {
 		this.searchProcessorFactory = searchProcessorFactory;
 		this.prevalencePath = prevalencePath;
 		this.systemName = systemName;
-		this.initializationMemoryCoreType = initializationMemoryCoreType;
 		this.numberOfFilesPerDiretory = numberOfFilesPerDiretory;
+		this.storeOperationsDetails = storeOperationsDetails;
 	}
 	
 	public SearchProcessorFactory getSearchProcessorFactory() {
@@ -41,15 +40,13 @@ public class PojoPrevalenceConfigurator implements PrevalenceConfigurator {
 	public void setSystemName(String systemName) {
 		this.systemName = systemName;
 	}
-	public InitializationMemoryCoreType getInitializationMemoryCoreType() {
-		return initializationMemoryCoreType;
-	}
-	public void setInitializationMemoryCoreType(InitializationMemoryCoreType initializationMemoryCoreType) {
-		this.initializationMemoryCoreType = initializationMemoryCoreType;
-	}
 	@Override
 	public Integer getNumberOfFilesPerDiretory() {
 		return numberOfFilesPerDiretory;
+	}
+	@Override
+	public boolean isStoreOperationsDetails() {
+		return storeOperationsDetails;
 	}
 	
 }
