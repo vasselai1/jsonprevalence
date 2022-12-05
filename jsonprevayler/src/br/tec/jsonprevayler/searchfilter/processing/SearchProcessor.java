@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemorySearchEngineInterface;
 import br.tec.jsonprevayler.searchfilter.PrevalenceFilter;
@@ -52,6 +53,6 @@ public abstract class SearchProcessor {
 		return totalFounded;
 	}
 	
-	public abstract <T extends PrevalenceEntity> void process(Class<T> classe, PrevalenceFilter<T> filter, List<T> retorno) throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException;
+	public abstract <T extends PrevalenceEntity> void process(Class<T> classe, PrevalenceFilter<T> filter, List<T> retorno) throws InternalPrevalenceException, ValidationPrevalenceException;
 	
 }

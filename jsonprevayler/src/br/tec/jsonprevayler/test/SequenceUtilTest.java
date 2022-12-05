@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
+import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.test.entity.User;
 
@@ -18,7 +20,7 @@ class SequenceUtilTest {
 	private static final String DIR_DADOS_TESTES = "/home/ricardo/Documentos/projetos_freelanc/dados_sistema";
 
 	//@Test
-	void test() throws IOException {
+	void test() throws InternalPrevalenceException, ValidationPrevalenceException {
 		SequenceProvider sequenceUtil = new SequenceProvider(DIR_DADOS_TESTES);
 		
 		System.out.println(sequenceUtil.get(User.class));
@@ -53,7 +55,7 @@ class SequenceUtilTest {
 			SequenceProvider sequenceUtil = new SequenceProvider(DIR_DADOS_TESTES);
 			try {
 				ids.add(sequenceUtil.get(User.class));
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}

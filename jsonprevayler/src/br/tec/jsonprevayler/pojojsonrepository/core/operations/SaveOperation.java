@@ -1,13 +1,10 @@
 package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.entity.TotalChangesPrevalenceSystem;
 import br.tec.jsonprevayler.entity.VersionedEntity;
-import br.tec.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionException;
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
@@ -15,12 +12,14 @@ import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.OperationType;
+import br.tec.jsonprevayler.util.LoggerUtil;
 import br.tec.jsonprevayler.util.ObjectCopyUtil;
 
 public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperations<T> implements ComandOperationInterface {
 
 	private T entity;
 	private Class<T> classeInternal;
+	private final Logger logger = Logger.getLogger(getClass().getName());
 	
 	public SaveOperation() { }
 	
@@ -37,7 +36,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 		return this;
 	}
 	
-	public void execute() throws ValidationPrevalenceException, IOException, InternalPrevalenceException, NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchAlgorithmException, DeprecatedPrevalenceEntityVersionException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {		
+	public void execute() throws InternalPrevalenceException, ValidationPrevalenceException {		
 		classeInternal = getClassRepository(entity.getClass());
 		initState(classeInternal, entity);
 		if (classeInternal == null) {
@@ -76,11 +75,11 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 		} catch (Exception e) {
 			undo();
 			updateState(OperationState.CANCELED, e.getMessage());
-			throw e;
+			throw LoggerUtil.error(logger, e, "Error save entity = %1$s, id = %2$d", classeInternal, id);
 		}
 	}	
 	
-	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchMethodException, InstantiationException, InterruptedException, Exception {
+	public void undo() throws InternalPrevalenceException, ValidationPrevalenceException {
 		switch (getState()) {
 			case MEMORY_UPDATED: {
 				memoryCore.updateMemory(classeInternal, OperationType.DELETE, entity);

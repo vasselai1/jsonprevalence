@@ -1,16 +1,25 @@
 package br.tec.jsonprevayler.infrastrutuctre.configuration;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Logger;
 
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
+import br.tec.jsonprevayler.util.LoggerUtil;
 
 public class SystemPropertiesPrevalenceConfigurator implements PrevalenceConfigurator {
 
+	private final Logger logger = Logger.getLogger(getClass().getName());
+	
 	@Override
 	@SuppressWarnings("unchecked")
-	public SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
-		Class<? extends SearchProcessorFactory> classe = (Class<? extends SearchProcessorFactory>) Class.forName(System.getProperty("searchProcessorFactory"));
-		return classe.getDeclaredConstructor().newInstance();
+	public SearchProcessorFactory getSearchProcessorFactory() throws InternalPrevalenceException {
+		String className = PropertiesPrevalenceConfigurator.PROPERTY_CLASS_NAME_SEARCH_PROCESSOR_FACTORY;
+		try {
+			Class<? extends SearchProcessorFactory> classe = (Class<? extends SearchProcessorFactory>) Class.forName(System.getProperty(className));
+			return classe.getDeclaredConstructor().newInstance();
+		} catch (Exception ex) {
+			throw LoggerUtil.error(logger, ex, "Error creating a new SearchProcessorFactory class %1$s", className);
+		}
 	}
 
 	@Override

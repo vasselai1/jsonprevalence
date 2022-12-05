@@ -2,9 +2,9 @@ package br.tec.jsonprevayler.infrastrutuctre.configuration;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 public class ResourcePropertiesFileConfigurator implements PrevalenceConfigurator {
@@ -21,7 +21,7 @@ public class ResourcePropertiesFileConfigurator implements PrevalenceConfigurato
 	}
 	
 	@Override
-	public SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
+	public SearchProcessorFactory getSearchProcessorFactory() throws InternalPrevalenceException {
 		return propertiesConfigurator.getSearchProcessorFactory();
 	}
 

@@ -6,13 +6,15 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
+import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.test.entity.User;
 import br.tec.jsonprevayler.util.ObjectCopyUtil;
 
 class CopyPojoTest {
 
 	@Test
-	void test() throws ClassNotFoundException, IOException {
+	void test() throws InternalPrevalenceException, ValidationPrevalenceException {
 		User user1 = new User();
 		user1.setName("Ricardo Vasselai Paulino");
 		user1.setMail("adfasdf@gmail.com");

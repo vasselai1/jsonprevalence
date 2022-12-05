@@ -1,8 +1,5 @@
 package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +29,7 @@ public abstract class CustomOperation {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public void execute(ComandOperationInterface operation) throws ValidationPrevalenceException, NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, Exception {
+	public void execute(ComandOperationInterface operation) throws InternalPrevalenceException, ValidationPrevalenceException, DeprecatedPrevalenceEntityVersionException {
 		if (!(operation instanceof CommonsOperations)) {
 			throw new ValidationPrevalenceException("Invalid Operation!");
 		}
@@ -45,7 +42,7 @@ public abstract class CustomOperation {
 		executedOperations.add(operation);
 	}
 	
-	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, Exception {
+	public void undo() throws InternalPrevalenceException, ValidationPrevalenceException, DeprecatedPrevalenceEntityVersionException {
 		if (executedOperations.isEmpty()) {
 			return;
 		} 

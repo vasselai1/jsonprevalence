@@ -1,7 +1,5 @@
 package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,6 +8,7 @@ import br.tec.jsonprevayler.annotations.MappedSuperClassPrevalenceRepository;
 import br.tec.jsonprevayler.entity.OperationLog;
 import br.tec.jsonprevayler.entity.OperationStatus;
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
@@ -37,20 +36,20 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 	}	
 	
 	@SuppressWarnings("unchecked")
-	Class<T> getClassRepository(Class<? extends PrevalenceEntity> classe) throws ValidationPrevalenceException {
+	Class<T> getClassRepository(Class<? extends PrevalenceEntity> classe) throws InternalPrevalenceException, ValidationPrevalenceException {
 		if (classe.isAnnotationPresent(MappedSuperClassPrevalenceRepository.class)) {
 			MappedSuperClassPrevalenceRepository mappingAnnotation = classe.getAnnotation(MappedSuperClassPrevalenceRepository.class);
 			if (mappingAnnotation.mapping() == null) {
-				throw new ValidationPrevalenceException("The annotation" + MappedSuperClassPrevalenceRepository.class.getName()  +  "in class " + classe.getCanonicalName() + " doesn't have mapping");
+				throw new ValidationPrevalenceException("The annotation" + MappedSuperClassPrevalenceRepository.class.getName()  +  " in class " + classe.getCanonicalName() + " doesn't have mapping");
 			}
 			return (Class<T>) mappingAnnotation.mapping();
 		}
 		return (Class<T>) classe;
 	}
-	protected void initState(Class<T> classe, Object entity) throws IOException, NoSuchAlgorithmException {
+	protected void initState(Class<T> classe, Object entity) throws InternalPrevalenceException, ValidationPrevalenceException {
 		initState(classe, entity, null);
 	}
-	protected void initState(Class<T> classe, Object entity, Date moment) throws IOException, NoSuchAlgorithmException {		
+	protected void initState(Class<T> classe, Object entity, Date moment) throws InternalPrevalenceException, ValidationPrevalenceException {		
 		state = OperationState.INITIALIZED;
 		if (!prevalenceConfigurator.isStoreOperationsDetails()) {
 			return;
@@ -66,13 +65,13 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 		fileCore.writeRegister(OperationStatus.class, operationStatus, true);
 	}
 	
-	protected void updateState(OperationState operationState) throws NoSuchAlgorithmException, IOException {
+	protected void updateState(OperationState operationState) throws InternalPrevalenceException {
 		updateState(operationState, null, null);
 	}
-	protected void updateState(OperationState operationState, String mensage) throws NoSuchAlgorithmException, IOException {
+	protected void updateState(OperationState operationState, String mensage) throws InternalPrevalenceException {
 		updateState(operationState, mensage, null);
 	}
-	protected void updateState(OperationState operationState, String mensage, Date moment) throws NoSuchAlgorithmException, IOException {
+	protected void updateState(OperationState operationState, String mensage, Date moment) throws InternalPrevalenceException {
 		state = operationState;
 		if (!prevalenceConfigurator.isStoreOperationsDetails()) {
 			return;
@@ -87,7 +86,7 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 		fileCore.writeRegister(OperationStatus.class, operationStatus, true);		
 	}
 	
-	protected void initStateAssinc(Class<T> classe, Object entity, Date moment) throws IOException, NoSuchAlgorithmException {
+	protected void initStateAssinc(Class<T> classe, Object entity, Date moment) throws InternalPrevalenceException, ValidationPrevalenceException {
 		state = OperationState.INITIALIZED;
 		if (!prevalenceConfigurator.isStoreOperationsDetails()) {
 			return;
@@ -102,10 +101,10 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 			}
 		}.start();
 	}
-	protected void updateStateAssinc(OperationState operationState, Date moment) throws IOException, NoSuchAlgorithmException {
+	protected void updateStateAssinc(OperationState operationState, Date moment) throws InternalPrevalenceException, ValidationPrevalenceException {
 		updateStateAssinc(operationState, null, moment);
 	}
-	protected void updateStateAssinc(OperationState operationState, String mensage, Date moment) throws IOException, NoSuchAlgorithmException {
+	protected void updateStateAssinc(OperationState operationState, String mensage, Date moment) throws InternalPrevalenceException, ValidationPrevalenceException {
 		state = operationState;
 		if (!prevalenceConfigurator.isStoreOperationsDetails()) {
 			return;
@@ -124,6 +123,5 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 	protected OperationState getState() {
 		return state;
 	}
-	
 	
 }

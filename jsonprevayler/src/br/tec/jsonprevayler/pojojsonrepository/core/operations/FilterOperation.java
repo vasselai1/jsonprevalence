@@ -1,13 +1,11 @@
 package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
@@ -30,11 +28,11 @@ public class FilterOperation <T extends PrevalenceEntity> extends CommonsOperati
 		setCore(prevalenceConfigurator, memoryCore, fileCore, sequenceUtil);
 	}
 
-	public Integer count(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+	public Integer count(Class<T> classe) throws InternalPrevalenceException, ValidationPrevalenceException {
 		return memoryCore.count(classe);
 	}
 	
-	public Integer count(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+	public Integer count(Class<T> classe, PrevalenceFilter<T> filter) throws InternalPrevalenceException, ValidationPrevalenceException {
 		
 		List<T> retorno = new ArrayList<T>();
 		searchProcessor.setOnlyCount(true);
@@ -43,19 +41,19 @@ public class FilterOperation <T extends PrevalenceEntity> extends CommonsOperati
 		return searchProcessor.getTotalFounded();
 	}
 	
-	public String listJson(Class<T> classe) throws IOException, ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {
+	public String listJson(Class<T> classe) throws InternalPrevalenceException, ValidationPrevalenceException {
 		return new JSONSerializer().serialize(memoryCore.listJson(classe));
 	}	
 	
-	public List<T> listPojo(Class<T> classe) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
+	public List<T> listPojo(Class<T> classe) throws InternalPrevalenceException, ValidationPrevalenceException {
 		return new ArrayList<T>(memoryCore.getValues(classe));
 	}	
 	
-	public List<T> listPojo(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchAlgorithmException {
+	public List<T> listPojo(Class<T> classe, PrevalenceFilter<T> filter) throws InternalPrevalenceException, ValidationPrevalenceException {
 		return list(classe, filter);
 	}
 	
-	public String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchAlgorithmException {
+	public String listJson(Class<T> classe, PrevalenceFilter<T> filter) throws InternalPrevalenceException, ValidationPrevalenceException {
 		List<T> filtrados = list(classe, filter);
 		List<String> retorno = new ArrayList<String>();
 		for (T entityLoop : filtrados) {
@@ -65,7 +63,7 @@ public class FilterOperation <T extends PrevalenceEntity> extends CommonsOperati
 		return new JSONSerializer().serialize(retorno);
 	}	
 	
-	private List<T> list(Class<T> classe, PrevalenceFilter<T> filter) throws IOException, InterruptedException, ClassNotFoundException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchAlgorithmException {
+	private List<T> list(Class<T> classe, PrevalenceFilter<T> filter) throws InternalPrevalenceException, ValidationPrevalenceException {
 		initStateAssinc(classe, filter, new Date());
 		List<T> retorno = new ArrayList<T>();		
 		filter.setMemorySearchEngine(memoryCore);
@@ -92,11 +90,11 @@ public class FilterOperation <T extends PrevalenceEntity> extends CommonsOperati
 		return retorno;	
 	}	
 
-	public T getFirstPojo(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException, NoSuchAlgorithmException {
+	public T getFirstPojo(Class<T> classe, FilterFirst<T> filterFirst) throws InternalPrevalenceException, ValidationPrevalenceException {
 		return getFirst(classe, filterFirst, true);
 	}
 	
-	public String getFirstJson(Class<T> classe, FilterFirst<T> filterFirst) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException, NoSuchAlgorithmException {
+	public String getFirstJson(Class<T> classe, FilterFirst<T> filterFirst) throws InternalPrevalenceException, ValidationPrevalenceException {
 		T entity = getFirst(classe, filterFirst, false);
 		if (entity == null) {
 			return null;
@@ -104,7 +102,7 @@ public class FilterOperation <T extends PrevalenceEntity> extends CommonsOperati
 		return memoryCore.getJson(classe, entity.getId());
 	}
 	
-	private T getFirst(Class<T> classe, FilterFirst<T> filterFirst, boolean secureCopy) throws ValidationPrevalenceException, ClassNotFoundException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, IOException, InterruptedException, NoSuchAlgorithmException {
+	private T getFirst(Class<T> classe, FilterFirst<T> filterFirst, boolean secureCopy) throws InternalPrevalenceException, ValidationPrevalenceException {
 		initStateAssinc(classe, filterFirst, new Date());
 		for (T entityLoop : memoryCore.getValues(classe)) {
 			if (filterFirst.isAcepted(entityLoop)) {

@@ -1,8 +1,6 @@
 package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.entity.TotalChangesPrevalenceSystem;
@@ -17,12 +15,14 @@ import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.LockPrevalenceEntityTokenFactory;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.OperationType;
+import br.tec.jsonprevayler.util.LoggerUtil;
 
 public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperations<T> implements ComandOperationInterface {
 
 	private T entity;
 	private Class<T> classeInternal;
 	private OperationState state = OperationState.INITIALIZED;
+	private final Logger logger = Logger.getLogger(getClass().getName());
 	
 	public DeleteOperation(PrevalenceConfigurator prevalenceConfigurator, MemoryCore memoryCore, FileCore fileCore, SequenceProvider sequenceProvider) {
 		setCore(prevalenceConfigurator, memoryCore, fileCore, sequenceProvider);
@@ -34,7 +34,7 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 	}
 	
 	@Override
-	public void execute() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, Exception {
+	public void execute() throws InternalPrevalenceException, ValidationPrevalenceException, DeprecatedPrevalenceEntityVersionException {
 		if (entity == null) {
 			throw new ValidationPrevalenceException("Entity is null!");
 		}
@@ -70,7 +70,7 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 			} catch (Exception e) {
 				undo();
 				updateState(OperationState.CANCELED, e.getMessage());
-				throw e;
+				throw LoggerUtil.error(logger, e, "Error in delete entity = %1$s, id = %2$d", classeInternal, id);
 			} finally {
 				entityToken.setEnd();
 			}
@@ -79,7 +79,7 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 	}
 
 	@Override
-	public void undo() throws NoSuchAlgorithmException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ValidationPrevalenceException, IOException, InternalPrevalenceException, DeprecatedPrevalenceEntityVersionException, NoSuchFieldException, SecurityException, Exception {
+	public void undo() throws InternalPrevalenceException, ValidationPrevalenceException {
 		switch (state) {
 			case MEMORY_UPDATED: {
 				memoryCore.updateMemory(classeInternal, OperationType.SAVE, entity);

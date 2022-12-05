@@ -2,30 +2,36 @@ package br.tec.jsonprevayler.infrastrutuctre.configuration;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
+import br.tec.jsonprevayler.util.LoggerUtil;
 import br.tec.jsonprevayler.util.RecordPathUtil;
 
 public class UserHomePropertiesFileConfigurator implements PrevalenceConfigurator {
 
 	private static PropertiesPrevalenceConfigurator propertiesConfigurator;
+	private static final String FILE_NAME_CONFIGURATION = "jsonPrevalence.properties";
 	
-	public static void initialize() throws FileNotFoundException, IOException {
+	public static void initialize() throws InternalPrevalenceException {
 		if (propertiesConfigurator != null) {
 			return;
 		}
-		File propertiesFile = new File(RecordPathUtil.getUserHomePath(), "jsonPrevalence.properties") ;
+		File propertiesFile = new File(RecordPathUtil.getUserHomePath(), FILE_NAME_CONFIGURATION) ;
 		Properties properties = new Properties();
-		properties.load(new FileInputStream(propertiesFile));
+		try {
+			properties.load(new FileInputStream(propertiesFile));
+		} catch (Exception ex) {
+			Logger logger = Logger.getLogger(UserHomePropertiesFileConfigurator.class.getName());
+			throw LoggerUtil.error(logger, ex, "Error while reading configuration file %1$s", FILE_NAME_CONFIGURATION);
+		}
 		propertiesConfigurator = new PropertiesPrevalenceConfigurator(properties);
 	}
 	
 	@Override
-	public SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
+	public SearchProcessorFactory getSearchProcessorFactory() throws InternalPrevalenceException {
 		return propertiesConfigurator.getSearchProcessorFactory();
 	}
 

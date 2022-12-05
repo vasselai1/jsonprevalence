@@ -1,12 +1,11 @@
 package br.tec.jsonprevayler.searchfilter.processing;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemorySearchEngineInterface;
 import br.tec.jsonprevayler.searchfilter.PrevalenceFilter;
@@ -20,7 +19,7 @@ public class MultiThreadSearchProcessor extends SearchProcessor {
 	private List<Throwable> errors = new ArrayList<Throwable>();
 		
 	@Override
-	public <T extends PrevalenceEntity> void process(Class<T> classe, PrevalenceFilter<T> filter, List<T> retorno) throws ClassNotFoundException, IOException, ValidationPrevalenceException, NoSuchFieldException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, InterruptedException {		
+	public <T extends PrevalenceEntity> void process(Class<T> classe, PrevalenceFilter<T> filter, List<T> retorno) throws InternalPrevalenceException, ValidationPrevalenceException {		
 		setProgressObserver(filter.getProgressSearchObserver());
 		int numberOfThreads = PROCESSOR_CORES;
 		if (PROCESSOR_CORES > 1) {

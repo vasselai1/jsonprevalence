@@ -1,10 +1,10 @@
 package br.tec.jsonprevayler.searchfilter.processing;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.searchfilter.PrevalenceFilter;
 
@@ -51,7 +51,7 @@ public class LocalThreadFilter <T extends PrevalenceEntity> extends SearchProces
 
 	@SuppressWarnings("hiding")
 	@Override
-	public <T extends PrevalenceEntity> void process(Class<T> classe, PrevalenceFilter<T> filter, List<T> retorno) throws ClassNotFoundException, IOException, ValidationPrevalenceException {
+	public <T extends PrevalenceEntity> void process(Class<T> classe, PrevalenceFilter<T> filter, List<T> retorno) throws InternalPrevalenceException, ValidationPrevalenceException {
 		throw new ValidationPrevalenceException("This method do not is used!");
 	}
 

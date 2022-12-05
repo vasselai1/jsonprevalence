@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 public class SystemPropertiesForLinkPropertiesFilePrevalenceConfigurator implements PrevalenceConfigurator {
@@ -24,7 +24,7 @@ public class SystemPropertiesForLinkPropertiesFilePrevalenceConfigurator impleme
 	}	
 	
 	@Override
-	public SearchProcessorFactory getSearchProcessorFactory() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
+	public SearchProcessorFactory getSearchProcessorFactory() throws InternalPrevalenceException {
 		return propertiesConfigurator.getSearchProcessorFactory();
 	}
 

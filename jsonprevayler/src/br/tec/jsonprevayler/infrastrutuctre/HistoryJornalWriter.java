@@ -1,16 +1,17 @@
 package br.tec.jsonprevayler.infrastrutuctre;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.logging.Logger;
 
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.pojojsonrepository.core.OperationType;
 import br.tec.jsonprevayler.util.HashUtil;
+import br.tec.jsonprevayler.util.LoggerUtil;
 
 public class HistoryJornalWriter {
 
@@ -27,21 +28,29 @@ public class HistoryJornalWriter {
 		return historyDir;
 	}
 	
-	public static void writeHistory(File oldFile) throws IOException {
+	public static void writeHistory(File oldFile) throws InternalPrevalenceException {
 		String fileExtension = getExtension(oldFile);
 		StringBuilder fileName = new StringBuilder();
 		fileName.append(oldFile.getName().replace(fileExtension, ""));
 		fileName.append("_").append(SDF_HISTORY.format(new Date()));		
 		fileName.append(fileExtension);
 		File historyFile = new File(getHistoryDirEntity(oldFile.getParentFile()), fileName.toString());
-		Files.copy(oldFile.toPath(), historyFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		try {
+			Files.copy(oldFile.toPath(), historyFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		} catch (Exception e) {
+			throw LoggerUtil.error(Logger.getLogger(HistoryJornalWriter.class.getName()), e, "Error while copy history old file = %1$s, history file = %2$s", oldFile.getName(), historyFile.getName());
+		}
 	}
 	
-	public static void appendJournal(File baseDir, OperationType operationType, Long id, String json) throws IOException, NoSuchAlgorithmException {		
+	public static void appendJournal(File baseDir, OperationType operationType, Long id, String json) throws InternalPrevalenceException {		
 		File journalFile = getJournalFile(baseDir);
 		rotateFile(baseDir);
 		if (!journalFile.exists()) {
-			journalFile.createNewFile();
+			try {
+				journalFile.createNewFile();
+			} catch (Exception e) {
+				throw LoggerUtil.error(Logger.getLogger(HistoryJornalWriter.class.getName()), e, "Error while create a new file for journal file = %1$s", journalFile.getName());
+			}
 		}
 		StringBuilder journalEntity = new StringBuilder();
 		journalEntity.append(operationType.name().substring(0, 1));
@@ -50,20 +59,32 @@ public class HistoryJornalWriter {
 		journalEntity.append(";");
 		journalEntity.append(id);
 		journalEntity.append(";");
-		journalEntity.append(HashUtil.getMd5(json));
+		try {
+			journalEntity.append(HashUtil.getMd5(json));
+		} catch (Exception e) {
+			throw LoggerUtil.error(Logger.getLogger(HistoryJornalWriter.class.getName()), e, "Error while create hash MD5 for journal file = %1$s, json = %2$s", journalFile.getName(), json);
+		}
 		journalEntity.append(System.lineSeparator());
-		Files.write(journalFile.toPath(), journalEntity.toString().getBytes(), StandardOpenOption.APPEND);
+		try {
+			Files.write(journalFile.toPath(), journalEntity.toString().getBytes(), StandardOpenOption.APPEND);
+		} catch (Exception e) {
+			throw LoggerUtil.error(Logger.getLogger(HistoryJornalWriter.class.getName()), e, "Error while copy write journal file = %1$s, json = %2$s", journalFile.getName(), json);
+		}		
 	}
 
 	private static File getJournalFile(File baseDir) {
 		return new File(getHistoryDirEntity(baseDir), JOURNAL_FILE_NAME + JOURNAL_FILE_EXT);
 	}
 	
-	public static synchronized void appendJournal(File baseDir, OperationType operationType, Long id, byte[] data) throws IOException, NoSuchAlgorithmException {
+	public static synchronized void appendJournal(File baseDir, OperationType operationType, Long id, byte[] data) throws InternalPrevalenceException {
 		File journalFile = getJournalFile(baseDir);
 		rotateFile(baseDir);
 		if (!journalFile.exists()) {
-			journalFile.createNewFile();
+			try {
+				journalFile.createNewFile();
+			} catch (Exception e) {
+				throw LoggerUtil.error(Logger.getLogger(HistoryJornalWriter.class.getName()), e, "Error while create a new file for journal file = %1$s", journalFile.getName());
+			}
 		}
 		StringBuilder journalEntity = new StringBuilder();
 		journalEntity.append(operationType.name().substring(0, 1));
@@ -72,9 +93,17 @@ public class HistoryJornalWriter {
 		journalEntity.append(";");
 		journalEntity.append(id);
 		journalEntity.append(";");
-		journalEntity.append(HashUtil.getMd5(data));
+		try {
+			journalEntity.append(HashUtil.getMd5(data));
+		} catch (Exception e) {
+			throw LoggerUtil.error(Logger.getLogger(HistoryJornalWriter.class.getName()), e, "Error while create hash MD5 for journal file = %1$s, binary", journalFile.getName());
+		}
 		journalEntity.append(System.lineSeparator());
-		Files.write(journalFile.toPath(), journalEntity.toString().getBytes(), StandardOpenOption.APPEND);
+		try {
+			Files.write(journalFile.toPath(), journalEntity.toString().getBytes(), StandardOpenOption.APPEND);
+		} catch (Exception e) {
+			throw LoggerUtil.error(Logger.getLogger(HistoryJornalWriter.class.getName()), e, "Error while copy write journal file = %1$s, binary", journalFile.getName());
+		}
 	}	
 	
 	public static String getExtension(File file) {
