@@ -8,7 +8,7 @@ import java.util.Date;
 
 import org.junit.jupiter.api.Test;
 
-import br.tec.jsonprevayler.pojojsonrepository.core.OperationType;
+import br.tec.jsonprevayler.pojojsonrepository.core.MemoryOperationType;
 import br.tec.jsonprevayler.util.HashUtil;
 
 class Sha512Test {
@@ -41,7 +41,7 @@ class Sha512Test {
 	void test3() throws NoSuchAlgorithmException {
 		SimpleDateFormat SDF_HISTORY = new SimpleDateFormat("ddMMyyyyHHmmssS");
 		StringBuilder journalEntity = new StringBuilder();
-		journalEntity.append(OperationType.SAVE.name().substring(0, 1));
+		journalEntity.append(MemoryOperationType.SAVE.name().substring(0, 1));
 		journalEntity.append(";");
 		journalEntity.append(SDF_HISTORY.format(new Date()));
 		journalEntity.append(";");

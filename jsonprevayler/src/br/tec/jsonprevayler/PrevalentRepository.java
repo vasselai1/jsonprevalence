@@ -1,5 +1,6 @@
 package br.tec.jsonprevayler;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -9,14 +10,15 @@ import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.PrevalenceChangeObserver;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
+import br.tec.jsonprevayler.pojojsonrepository.core.OperationsControler;
 import br.tec.jsonprevayler.pojojsonrepository.core.operations.CustomOperation;
-import br.tec.jsonprevayler.pojojsonrepository.core.operations.OperationsControler;
 import br.tec.jsonprevayler.searchfilter.FilterFirst;
 import br.tec.jsonprevayler.searchfilter.PrevalenceFilter;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 /**
- * Prevalence (file json and memory pojo) CRUD with version control, history, journal and observer. 
+ * Prevalence (file json and memory pojo) CRUD for java POJO with version control, history, journal, observer and backup. 
+ * File system uses Json in balanced directories. 
  * @author vasselai1
  */
 public class PrevalentRepository {
@@ -91,6 +93,18 @@ public class PrevalentRepository {
 	@SuppressWarnings({ "rawtypes" })
 	public <T extends PrevalenceEntity> Map joSqlQueryGroupMap(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) throws InternalPrevalenceException, ValidationPrevalenceException {
 		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).joSqlQueryGroupMap(classe, joSqlQuery, parametersBind);
+	}
+	
+	public <T extends PrevalenceEntity> Map<Date, String> listVersions(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
+		return new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).listVersions(classe, id);
+	}
+	
+	public <T extends PrevalenceEntity> void overwrite(Class<T> classe, Long id, Date versionDate) throws InternalPrevalenceException, ValidationPrevalenceException {
+		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).overwrite(classe, id, versionDate);
+	}
+
+	public <T extends PrevalenceEntity> void deleteHistoryAndDetails(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
+		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).deleteHistoryAndDetails(classe, id);
 	}
 	
 	public void registerObserver(PrevalenceChangeObserver observer) {

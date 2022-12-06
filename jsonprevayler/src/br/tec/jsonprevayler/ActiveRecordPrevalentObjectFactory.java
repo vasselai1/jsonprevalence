@@ -1,6 +1,6 @@
 package br.tec.jsonprevayler;
 
-public class ActivePrevalentObjectFactory {
+public class ActiveRecordPrevalentObjectFactory {
 	//slow write fast read
 	
 	//TODO create dinamicaly classes where set methods shoot write disk in json and when IO Error throws RuntimeException

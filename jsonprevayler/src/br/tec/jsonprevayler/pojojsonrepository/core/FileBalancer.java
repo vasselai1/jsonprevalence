@@ -68,7 +68,9 @@ public class FileBalancer {
 			firstDir.mkdir();
 			balancedDirectories = Arrays.asList(basePath.toFile().listFiles(fileNameFilterDirectoryBalance));
 		}
-		actualPath = balancedDirectories.get(balancedDirectories.size() - 1).toPath();
+		if (isActualPathNotInitialized()) {
+			actualPath = balancedDirectories.get(balancedDirectories.size() - 1).toPath();
+		}
 		return balancedDirectories;
 	}
 		

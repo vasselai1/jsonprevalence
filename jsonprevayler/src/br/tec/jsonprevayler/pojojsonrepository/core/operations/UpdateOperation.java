@@ -1,7 +1,5 @@
 package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
-import java.util.logging.Logger;
-
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.entity.TotalChangesPrevalenceSystem;
 import br.tec.jsonprevayler.entity.VersionedEntity;
@@ -14,7 +12,7 @@ import br.tec.jsonprevayler.pojojsonrepository.core.EntityTokenKey;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.LockPrevalenceEntityTokenFactory;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
-import br.tec.jsonprevayler.pojojsonrepository.core.OperationType;
+import br.tec.jsonprevayler.pojojsonrepository.core.MemoryOperationType;
 import br.tec.jsonprevayler.util.LoggerUtil;
 
 public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperations<T> implements ComandOperationInterface {
@@ -23,7 +21,7 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 	private T entity;
 	private T oldEntity;	
 	private OperationState state = OperationState.INITIALIZED;
-	private final Logger logger = Logger.getLogger(getClass().getName());
+	private boolean isOverwrite = false;
 	
 	public UpdateOperation(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
 		setCore(prevalenceConfigurator, memoryCore, fileCore, sequenceUtil);
@@ -44,14 +42,14 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 		if (entity.getId() == null) {
 			throw new ValidationPrevalenceException("Id is not seted!");
 		}
-		EntityTokenKey entityToken = LockPrevalenceEntityTokenFactory.get(entity);
+		EntityTokenKey entityToken = LockPrevalenceEntityTokenFactory.get(entity, dateProvider);
 		updateState(OperationState.INIT_LOCK);
 		synchronized (entityToken) {
 			entityToken.setUse("Update");
 			if (entity instanceof VersionedEntity) {
 				VersionedEntity newVersionedEntity = (VersionedEntity) entity;
 				VersionedEntity oldVersionedEntity = (VersionedEntity) memoryCore.getPojo(classeInternal, entity.getId());
-				if (newVersionedEntity.getVersion() != oldVersionedEntity.getVersion()) {
+				if ((newVersionedEntity.getVersion() != oldVersionedEntity.getVersion()) && (!isOverwrite)) {
 					throw new DeprecatedPrevalenceEntityVersionException(classeInternal.getCanonicalName(), newVersionedEntity.getVersion(), oldVersionedEntity.getVersion());
 				}
 				newVersionedEntity.setVersion(oldVersionedEntity.getVersion() + 1);
@@ -63,8 +61,11 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 				updateState(OperationState.ENTITY_WRITED);
 				sequenceProvider.get(TotalChangesPrevalenceSystem.class);
 				updateState(OperationState.PREVALENCE_VERSION_UPDATED);
-				memoryCore.updateMemory(classeInternal, OperationType.UPDATE, entity);
+				memoryCore.updateMemory(classeInternal, MemoryOperationType.UPDATE, entity);
 				updateState(OperationState.MEMORY_UPDATED);
+				if (isOverwrite) {
+					updateState(OperationState.OVERWRITED);
+				}
 				updateState(OperationState.FINALIZED);
 			} catch (Exception e) {
 				undo();
@@ -81,7 +82,7 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 	public void undo() throws InternalPrevalenceException, ValidationPrevalenceException {
 		switch (state) {
 			case MEMORY_UPDATED: {
-				memoryCore.updateMemory(classeInternal, OperationType.UPDATE, oldEntity);
+				memoryCore.updateMemory(classeInternal, MemoryOperationType.UPDATE, oldEntity);
 				updateState(OperationState.UNDO_DELETE_MEMORY);
 			}
 			case ENTITY_WRITED: {
@@ -106,6 +107,15 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 	@SuppressWarnings("unchecked")
 	public T getEntity() {
 		return entity;
+	}
+	
+	public void setIsOverwrite(boolean isOverwrite) {
+		this.isOverwrite = isOverwrite;
+	}
+
+	@Override
+	public String getOperationName() {
+		return "UpdateOperation_" + entity.getClass() + "_" + entity.getId();
 	}
 	
 }

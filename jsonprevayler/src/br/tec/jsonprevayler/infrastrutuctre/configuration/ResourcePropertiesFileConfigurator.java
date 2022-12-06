@@ -5,10 +5,13 @@ import java.io.IOException;
 import java.util.Properties;
 
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.CurrentSytemDateProvider;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 public class ResourcePropertiesFileConfigurator implements PrevalenceConfigurator {
 
+	private static final DateProvider DATE_PROVIDER = new CurrentSytemDateProvider();
 	private static PropertiesPrevalenceConfigurator propertiesConfigurator;
 	
 	public static void initialize() throws FileNotFoundException, IOException {
@@ -43,6 +46,11 @@ public class ResourcePropertiesFileConfigurator implements PrevalenceConfigurato
 	@Override
 	public boolean isStoreOperationsDetails() {
 		return propertiesConfigurator.isStoreOperationsDetails();
+	}
+
+	@Override
+	public DateProvider getDateProvider() {
+		return DATE_PROVIDER;
 	}
 
 }

@@ -5,17 +5,17 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.logging.Logger;
 
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
-import br.tec.jsonprevayler.pojojsonrepository.core.OperationType;
+import br.tec.jsonprevayler.pojojsonrepository.core.MemoryOperationType;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
 import br.tec.jsonprevayler.util.HashUtil;
 import br.tec.jsonprevayler.util.LoggerUtil;
 
 public class HistoryJornalWriter {
 
-	private static SimpleDateFormat SDF_HISTORY = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ssS");
+	public  static final SimpleDateFormat SDF_HISTORY = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ssS");
 	private static final String JOURNAL_FILE_NAME = "operations";
 	private static final String JOURNAL_FILE_EXT = ".jrn";
 	private static final int SIZE_IN_BYTES_TO_ROTATE = 10485760;//10MB 
@@ -28,11 +28,11 @@ public class HistoryJornalWriter {
 		return historyDir;
 	}
 	
-	public static void writeHistory(File oldFile) throws InternalPrevalenceException {
+	public static void writeHistory(File oldFile, DateProvider dateProvider) throws InternalPrevalenceException {
 		String fileExtension = getExtension(oldFile);
 		StringBuilder fileName = new StringBuilder();
 		fileName.append(oldFile.getName().replace(fileExtension, ""));
-		fileName.append("_").append(SDF_HISTORY.format(new Date()));		
+		fileName.append("_").append(SDF_HISTORY.format(dateProvider.get()));		
 		fileName.append(fileExtension);
 		File historyFile = new File(getHistoryDirEntity(oldFile.getParentFile()), fileName.toString());
 		try {
@@ -42,9 +42,9 @@ public class HistoryJornalWriter {
 		}
 	}
 	
-	public static void appendJournal(File baseDir, OperationType operationType, Long id, String json) throws InternalPrevalenceException {		
+	public static void appendJournal(File baseDir, MemoryOperationType operationType, Long id, String json, DateProvider dateProvider) throws InternalPrevalenceException {		
 		File journalFile = getJournalFile(baseDir);
-		rotateFile(baseDir);
+		rotateFile(baseDir, dateProvider);
 		if (!journalFile.exists()) {
 			try {
 				journalFile.createNewFile();
@@ -55,7 +55,7 @@ public class HistoryJornalWriter {
 		StringBuilder journalEntity = new StringBuilder();
 		journalEntity.append(operationType.name().substring(0, 1));
 		journalEntity.append(";");
-		journalEntity.append(SDF_HISTORY.format(new Date()));
+		journalEntity.append(SDF_HISTORY.format(dateProvider.get()));
 		journalEntity.append(";");
 		journalEntity.append(id);
 		journalEntity.append(";");
@@ -76,9 +76,9 @@ public class HistoryJornalWriter {
 		return new File(getHistoryDirEntity(baseDir), JOURNAL_FILE_NAME + JOURNAL_FILE_EXT);
 	}
 	
-	public static synchronized void appendJournal(File baseDir, OperationType operationType, Long id, byte[] data) throws InternalPrevalenceException {
+	public static synchronized void appendJournal(File baseDir, MemoryOperationType operationType, Long id, byte[] data, DateProvider dateProvider) throws InternalPrevalenceException {
 		File journalFile = getJournalFile(baseDir);
-		rotateFile(baseDir);
+		rotateFile(baseDir, dateProvider);
 		if (!journalFile.exists()) {
 			try {
 				journalFile.createNewFile();
@@ -89,7 +89,7 @@ public class HistoryJornalWriter {
 		StringBuilder journalEntity = new StringBuilder();
 		journalEntity.append(operationType.name().substring(0, 1));
 		journalEntity.append(";");
-		journalEntity.append(SDF_HISTORY.format(new Date()));
+		journalEntity.append(SDF_HISTORY.format(dateProvider.get()));
 		journalEntity.append(";");
 		journalEntity.append(id);
 		journalEntity.append(";");
@@ -118,12 +118,12 @@ public class HistoryJornalWriter {
 		return fileName.substring(index).toLowerCase();
 	}
 	
-	private static void rotateFile(File baseDir) {
+	private static void rotateFile(File baseDir, DateProvider dateProvider) {
 		File journalFile = getJournalFile(baseDir);
 		if (!journalFile.exists() || (journalFile.length() < SIZE_IN_BYTES_TO_ROTATE)) {
 			return;
 		}
-		File journalFileRotaded = new File(getHistoryDirEntity(baseDir), JOURNAL_FILE_NAME + SDF_HISTORY.format(new Date()) + JOURNAL_FILE_EXT);
+		File journalFileRotaded = new File(getHistoryDirEntity(baseDir), JOURNAL_FILE_NAME + SDF_HISTORY.format(dateProvider.get()) + JOURNAL_FILE_EXT);
 		journalFile.renameTo(journalFileRotaded);
 	}
 	

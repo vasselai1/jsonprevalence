@@ -3,11 +3,14 @@ package br.tec.jsonprevayler.infrastrutuctre.configuration;
 import java.util.logging.Logger;
 
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.CurrentSytemDateProvider;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 import br.tec.jsonprevayler.util.LoggerUtil;
 
 public class SystemPropertiesPrevalenceConfigurator implements PrevalenceConfigurator {
 
+	private static final DateProvider DATE_PROVIDER = new CurrentSytemDateProvider();
 	private final Logger logger = Logger.getLogger(getClass().getName());
 	
 	@Override
@@ -40,6 +43,11 @@ public class SystemPropertiesPrevalenceConfigurator implements PrevalenceConfigu
 	@Override
 	public boolean isStoreOperationsDetails() {
 		return Boolean.parseBoolean(System.getProperty("br.tec.jsonprevayler.storeOperationsDetails"));
+	}
+
+	@Override
+	public DateProvider getDateProvider() {
+		return DATE_PROVIDER;
 	}
 
 }

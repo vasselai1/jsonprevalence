@@ -14,6 +14,7 @@ import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
 import flexjson.JSONSerializer;
 
 public abstract class CommonsOperations <T extends PrevalenceEntity> {
@@ -21,18 +22,43 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 	protected PrevalenceConfigurator prevalenceConfigurator;
 	protected MemoryCore memoryCore;
 	protected FileCore fileCore;
-	protected SequenceProvider sequenceProvider;	
+	protected SequenceProvider sequenceProvider;
+	protected DateProvider dateProvider;
+	private Date initialMoment;
+	private Date finalMoment;
 	protected Logger logger = Logger.getLogger(getClass().getName());
 	private OperationState state;
 	private OperationLog operationLog;
 	private OperationStatus operationStatus;
 	private JSONSerializer serializer = new JSONSerializer();
+	
 
-	void setCore(PrevalenceConfigurator prevalenceConfigurator, MemoryCore memoryCore, FileCore fileCore, SequenceProvider sequenceProvider) {
+	public void setCore(PrevalenceConfigurator prevalenceConfigurator, MemoryCore memoryCore, FileCore fileCore, SequenceProvider sequenceProvider) {
 		this.prevalenceConfigurator = prevalenceConfigurator;
 		this.memoryCore = memoryCore;
 		this.fileCore = fileCore;
 		this.sequenceProvider = sequenceProvider;
+		this.dateProvider = prevalenceConfigurator.getDateProvider();
+		initialMoment = dateProvider.get();
+	}	
+	
+	public OperationState getState() {
+		return state;
+	}
+	public void setState(OperationState state) {
+		this.state = state;
+	}	
+	public Date getInitialMoment() {
+		return initialMoment;
+	}
+	public void setInitialMoment(Date initialMoment) {
+		this.initialMoment = initialMoment;
+	}
+	public Date getFinalMoment() {
+		return finalMoment;
+	}
+	public void setFinalMoment(Date finalMoment) {
+		this.finalMoment = finalMoment;
 	}	
 	
 	@SuppressWarnings("unchecked")
@@ -55,7 +81,7 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 			return;
 		}
 		if (moment == null) {
-			moment = new Date();
+			moment = dateProvider.get();
 		}
 		operationLog = new OperationLog(classe.getName(), getClass().getSimpleName(), serializer.deepSerialize(entity));
 		operationLog.setInitMoment(moment);
@@ -73,6 +99,9 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 	}
 	protected void updateState(OperationState operationState, String mensage, Date moment) throws InternalPrevalenceException {
 		state = operationState;
+		if (OperationState.FINALIZED.equals(operationState)) {
+			finalMoment = dateProvider.get();
+		}
 		if (!prevalenceConfigurator.isStoreOperationsDetails()) {
 			return;
 		}
@@ -120,8 +149,6 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 		}.start();
 	}
 	
-	protected OperationState getState() {
-		return state;
-	}
+	public abstract String getOperationName();
 	
 }

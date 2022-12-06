@@ -1,0 +1,47 @@
+package br.tec.jsonprevayler.pojojsonrepository.core.operations.josql;
+
+import java.util.List;
+import java.util.Map;
+
+import org.josql.Query;
+import org.josql.QueryResults;
+
+import br.tec.jsonprevayler.entity.PrevalenceEntity;
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
+import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
+import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
+import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
+import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
+import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
+import br.tec.jsonprevayler.pojojsonrepository.core.operations.OperationState;
+import br.tec.jsonprevayler.util.LoggerUtil;
+
+public class JoSqlHavingOperation <T extends PrevalenceEntity> extends JoSqlOperation<T> {
+
+	public JoSqlHavingOperation(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil,MemoryCore memoryCore, FileCore fileCore) {
+		super(prevalenceConfigurator, sequenceUtil, memoryCore, fileCore);
+	}
+	
+	public JoSqlHavingOperation<T> set(Class<T> classe, String joSqlQuery, Map<String, Object> parametersBind) {
+		return set(classe, joSqlQuery, parametersBind);		
+	}
+	
+	public List<?> execute() throws InternalPrevalenceException, ValidationPrevalenceException {
+		initStateAssinc(classe, classe, dateProvider.get());
+		Query query = initQueryJoSql(joSqlQuery, parametersBind);
+		QueryResults queryResults = null;
+		try {
+			queryResults = query.execute(memoryCore.getValues(classe));
+		} catch (Exception ex) {
+			throw LoggerUtil.error(logger, ex, "Error in execute having joSqlQuery %1$s with parameters ", joSqlQuery, parametersBind);
+		}
+		updateStateAssinc(OperationState.FINALIZED, dateProvider.get());
+		return queryResults.getHavingResults();		
+	}
+
+	@Override
+	public String getOperationName() {
+		return "JoSqlHavingOperation";
+	}	
+
+}

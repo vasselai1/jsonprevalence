@@ -6,12 +6,15 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.CurrentSytemDateProvider;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 import br.tec.jsonprevayler.util.LoggerUtil;
 import br.tec.jsonprevayler.util.RecordPathUtil;
 
 public class UserHomePropertiesFileConfigurator implements PrevalenceConfigurator {
 
+	private static final DateProvider DATE_PROVIDER = new CurrentSytemDateProvider();
 	private static PropertiesPrevalenceConfigurator propertiesConfigurator;
 	private static final String FILE_NAME_CONFIGURATION = "jsonPrevalence.properties";
 	
@@ -53,6 +56,11 @@ public class UserHomePropertiesFileConfigurator implements PrevalenceConfigurato
 	@Override
 	public boolean isStoreOperationsDetails() {
 		return propertiesConfigurator.isStoreOperationsDetails();
+	}
+
+	@Override
+	public DateProvider getDateProvider() {
+		return DATE_PROVIDER;
 	}
 
 }

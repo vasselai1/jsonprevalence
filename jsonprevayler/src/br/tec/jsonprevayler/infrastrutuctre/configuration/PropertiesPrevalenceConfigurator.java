@@ -4,12 +4,15 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.CurrentSytemDateProvider;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 import br.tec.jsonprevayler.util.LoggerUtil;
 
 public class PropertiesPrevalenceConfigurator implements PrevalenceConfigurator {
 
 	public static final String PROPERTY_CLASS_NAME_SEARCH_PROCESSOR_FACTORY = "searchProcessorFactory"; 
+	private static final DateProvider DATE_PROVIDER = new CurrentSytemDateProvider();
 	
 	private Properties properties;
 	private final Logger logger = Logger.getLogger(getClass().getName());
@@ -47,5 +50,10 @@ public class PropertiesPrevalenceConfigurator implements PrevalenceConfigurator 
 	@Override
 	public boolean isStoreOperationsDetails() {
 		return Boolean.parseBoolean(properties.getProperty("storeOperationsDetails"));
+	}
+
+	@Override
+	public DateProvider getDateProvider() {
+		return DATE_PROVIDER;
 	}
 }

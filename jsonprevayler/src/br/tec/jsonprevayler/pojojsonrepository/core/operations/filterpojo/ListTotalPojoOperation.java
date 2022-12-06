@@ -1,0 +1,36 @@
+package br.tec.jsonprevayler.pojojsonrepository.core.operations.filterpojo;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import br.tec.jsonprevayler.entity.PrevalenceEntity;
+import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
+import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
+import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
+import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
+import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
+import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
+import br.tec.jsonprevayler.searchfilter.processing.SearchProcessor;
+
+public class ListTotalPojoOperation <T extends PrevalenceEntity> extends FilterOperation<T> {
+	
+	public ListTotalPojoOperation(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore, SearchProcessor searchProcessor) {
+		super(prevalenceConfigurator, sequenceUtil, memoryCore, fileCore, searchProcessor);
+	}
+
+	public ListTotalPojoOperation<T> set(Class<T> classe) {
+		super.classe = classe;
+		return this;
+	}
+	
+	public List<T> execute() throws InternalPrevalenceException, ValidationPrevalenceException {
+		totalResults = memoryCore.count(classe);
+		return new ArrayList<T>(memoryCore.getValues(classe));
+	}
+
+	@Override
+	public String getOperationName() {
+		return "ListTotalPojoOperation_" + classe;
+	}
+	
+}

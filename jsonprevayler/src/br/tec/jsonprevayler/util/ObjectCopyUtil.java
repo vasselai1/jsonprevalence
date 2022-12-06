@@ -45,5 +45,17 @@ public class ObjectCopyUtil {
 		}
 		return retorno;
 	}
+
+	public static List<Object> copyList(Collection<?> collection) throws InternalPrevalenceException {
+		List<Object> retorno = new ArrayList<>();
+		if (collection == null) {
+			return retorno;
+		}
+		for (Object object : collection) {
+			Object copied = (Object) copyEntity(object);
+			retorno.add(copied);
+		}
+		return retorno;
+	}	
 	
 }

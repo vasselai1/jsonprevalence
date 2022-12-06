@@ -21,7 +21,7 @@ public abstract class CustomOperation {
 	private FileCore fileCore;
 	private List<ComandOperationInterface> executedOperations = new ArrayList<ComandOperationInterface>();
 	
-	void initialize(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
+	public void initialize(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
 		this.prevalenceConfigurator = prevalenceConfigurator;
 		this.sequenceProvider = sequenceUtil;
 		this.memoryCore = memoryCore;

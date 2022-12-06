@@ -3,6 +3,7 @@ package br.tec.jsonprevayler.pojojsonrepository.core;
 import java.util.Date;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
 
 public class EntityTokenKey {
 	
@@ -10,15 +11,16 @@ public class EntityTokenKey {
 	private final Long id;
 	private String currentUseDescription;
 	private Date currentMomentUse;
+	private DateProvider dateProvider;
 	
-	public EntityTokenKey(Class<? extends PrevalenceEntity> classe, Long id) {
+	public EntityTokenKey(Class<? extends PrevalenceEntity> classe, Long id, DateProvider dateProvider) {
 		this.classe = classe;
 		this.id = id;
 	}
 
 	public void setUse(String description) {
 		currentUseDescription = description;
-		currentMomentUse = new Date();
+		currentMomentUse = dateProvider.get();
 	}
 	public void setEnd() {
 		currentUseDescription = null;

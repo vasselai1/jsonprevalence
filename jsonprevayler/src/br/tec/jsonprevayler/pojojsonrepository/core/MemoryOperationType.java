@@ -1,6 +1,6 @@
 package br.tec.jsonprevayler.pojojsonrepository.core;
 
-public enum OperationType {
+public enum MemoryOperationType {
 	INITIALIZE,
 	SAVE,
 	UPDATE,

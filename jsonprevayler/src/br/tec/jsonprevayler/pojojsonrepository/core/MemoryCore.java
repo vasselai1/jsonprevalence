@@ -20,6 +20,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 	
 	private static final List<Class<? extends PrevalenceEntity>> controlClasses = Arrays.asList(OperationLog.class, OperationStatus.class);
 	private static Map<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>> pojoRepository = null;
+	private static Map<Class<? extends PrevalenceEntity>, Map<Long, String>> jsonRepository = null;
 	private static final List<PrevalenceChangeObserver> observers = new ArrayList<PrevalenceChangeObserver>();
 	private static boolean inMaintenance = false;
 	private FileCore fileCore;
@@ -43,7 +44,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 		return (pojoRepository.get(classe) != null);
 	}
 	
-	public <T extends PrevalenceEntity> Class<T> updateMemory(Class<T> classe, OperationType operationType, T entity) throws InternalPrevalenceException, ValidationPrevalenceException {
+	public <T extends PrevalenceEntity> Class<T> updateMemory(Class<T> classe, MemoryOperationType operationType, T entity) throws InternalPrevalenceException, ValidationPrevalenceException {
 		classe = getClassRepository(classe);
 		if (inMaintenance) {
 			throw new ValidationPrevalenceException("Prevalence don't be start when maintenance is running! Plese wait the end maintenance.");
@@ -56,14 +57,16 @@ public class MemoryCore implements MemorySearchEngineInterface {
 				}
 			}
 		}
-		if (OperationType.INITIALIZE.equals(operationType)) {
+		if (MemoryOperationType.INITIALIZE.equals(operationType)) {
 			return classe;
 		}
-		if (OperationType.SAVE.equals(operationType) || OperationType.UPDATE.equals(operationType)) {			
+		if (MemoryOperationType.SAVE.equals(operationType) || MemoryOperationType.UPDATE.equals(operationType)) {			
 			pojoRepository.get(classe).put(entity.getId(), entity);
+			jsonRepository.get(classe).put(entity.getId(), serializer.deepSerialize(entity));
 		}
-		if (OperationType.DELETE.equals(operationType)) {
+		if (MemoryOperationType.DELETE.equals(operationType)) {
 			pojoRepository.get(classe).remove(entity.getId());
+			jsonRepository.get(classe).remove(entity.getId());
 		}
 		sendOperationInfo(operationType, classe, entity.getId());
 		return classe;
@@ -80,7 +83,8 @@ public class MemoryCore implements MemorySearchEngineInterface {
 		if (pojoRepository != null) {
 			return;
 		}
-		pojoRepository = new HashMap<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>>();		
+		pojoRepository = new HashMap<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>>();
+		jsonRepository = new HashMap<Class<? extends PrevalenceEntity>, Map<Long,String>>();
 		List<Class<? extends PrevalenceEntity>> initializedPrevalentClasses = new ArrayList<Class<? extends PrevalenceEntity>>();
 		for (Class<? extends PrevalenceEntity> classe : fileCore.listAllPrevalentClasses()) {			
 			if (ignoreLoad(classe)) {
@@ -88,9 +92,12 @@ public class MemoryCore implements MemorySearchEngineInterface {
 			}
 			Class<? extends PrevalenceEntity> classeRepository = getClassRepository(classe);
 			pojoRepository.put(classeRepository, new HashMap<Long, PrevalenceEntity>());
-			List<? extends PrevalenceEntity> registries = fileCore.readRegistries(classe);
-			for (PrevalenceEntity entityLoop : registries) {			
+			jsonRepository.put(classeRepository, new HashMap<Long, String>());
+			Map<String, ? extends PrevalenceEntity> registries = fileCore.readRegistries(classe);
+			for (String jsonLoop : registries.keySet()) {
+				PrevalenceEntity entityLoop = registries.get(jsonLoop);
 				pojoRepository.get(classeRepository).put(entityLoop.getId(), entityLoop);
+				jsonRepository.get(classeRepository).put(entityLoop.getId(), jsonLoop);
 			}
 			initializedPrevalentClasses.add(classeRepository);
 		}
@@ -103,40 +110,40 @@ public class MemoryCore implements MemorySearchEngineInterface {
 	
 	@Override
 	public <T extends PrevalenceEntity> Integer count(Class<T> classe) throws InternalPrevalenceException, ValidationPrevalenceException {
-		classe = updateMemory(classe, OperationType.INITIALIZE, null);
+		classe = updateMemory(classe, MemoryOperationType.INITIALIZE, null);
 		return pojoRepository.get(classe).size();
 	}		
 	
 	@SuppressWarnings("unchecked")
 	public <T extends PrevalenceEntity> T getPojo(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
-		classe = updateMemory(classe, OperationType.INITIALIZE, null);
+		classe = updateMemory(classe, MemoryOperationType.INITIALIZE, null);
 		return (T) pojoRepository.get(classe).get(id);
 	}	
 	
 	public <T extends PrevalenceEntity> String getJson(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
-		classe = updateMemory(classe, OperationType.INITIALIZE, null);
-		return new JSONSerializer().deepSerialize(pojoRepository.get(classe).get(id));
+		classe = updateMemory(classe, MemoryOperationType.INITIALIZE, null);
+		return jsonRepository.get(classe).get(id);
 	}
 	
 	public <T extends PrevalenceEntity> String listJson(Class<T> classe) throws InternalPrevalenceException, ValidationPrevalenceException {
-		classe = updateMemory(classe, OperationType.INITIALIZE, null);
-		return new JSONSerializer().serialize(pojoRepository.values());
+		classe = updateMemory(classe, MemoryOperationType.INITIALIZE, null);
+		return new JSONSerializer().serialize(jsonRepository.values());
 	}	
 
 	
 	public <T extends PrevalenceEntity> boolean isIdUsed(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
-		classe = updateMemory(classe, OperationType.INITIALIZE, null);
+		classe = updateMemory(classe, MemoryOperationType.INITIALIZE, null);
 		return pojoRepository.get(classe).containsKey(id);
 	}		
 	
 	public <T extends PrevalenceEntity> Collection<Long> getKeys(Class<T> classe) throws ValidationPrevalenceException, InternalPrevalenceException {
-		classe = updateMemory(classe, OperationType.INITIALIZE, null);
+		classe = updateMemory(classe, MemoryOperationType.INITIALIZE, null);
 		return pojoRepository.get(classe).keySet();
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T extends PrevalenceEntity> Collection<T> getValues(Class<T> classe) throws InternalPrevalenceException, ValidationPrevalenceException {
-		classe = updateMemory(classe, OperationType.INITIALIZE, null);
+		classe = updateMemory(classe, MemoryOperationType.INITIALIZE, null);
 		return (Collection<T>) pojoRepository.get(classe).values();
 	}	
 	
@@ -152,7 +159,7 @@ public class MemoryCore implements MemorySearchEngineInterface {
 		return (Class<T>) classe;
 	}	
 	
-	private <T extends PrevalenceEntity> void sendOperationInfo(OperationType operationType, Class<T> classe, Long id) {
+	private <T extends PrevalenceEntity> void sendOperationInfo(MemoryOperationType operationType, Class<T> classe, Long id) {
 		if (observers == null) {
 			return;
 		}

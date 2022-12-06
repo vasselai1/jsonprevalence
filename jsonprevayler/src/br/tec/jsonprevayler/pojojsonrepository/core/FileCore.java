@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,8 @@ import java.util.logging.Logger;
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.HistoryJornalWriter;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.FileNameFilterClassId;
 import br.tec.jsonprevayler.util.LoggerUtil;
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
@@ -22,18 +25,20 @@ public class FileCore {
 
 	private static final Map<Class<? extends PrevalenceEntity>, FileBalancer> entitiesBalancers = new HashMap<Class<? extends PrevalenceEntity>, FileBalancer>();
 	private static final String FS = File.separator;
-	
+		
 	private final String systemPath;
 	private final String prevalencePath; 
 	private final String systemName;
 	private final Integer maxFilesPerDiretory;
+	private final DateProvider dateProvider;
 	private final Logger logger = Logger.getLogger(getClass().getName());
 	
-	public FileCore(String prevalencePath, String systemName, Integer maxFilesPerDiretory) {
+	public FileCore(String prevalencePath, String systemName, Integer maxFilesPerDiretory, DateProvider dateProvider) {
 		this.prevalencePath = prevalencePath;
 		this.systemPath = prevalencePath + FS + systemName;
 		this.systemName = systemName;
 		this.maxFilesPerDiretory = maxFilesPerDiretory;
+		this.dateProvider = dateProvider;
 	}
 
 	public String getPrevalencePath() {
@@ -57,8 +62,8 @@ public class FileCore {
 		}
 	}
 	
-	public <T extends PrevalenceEntity> List<T> readRegistries(Class<T> classe) throws InternalPrevalenceException {
-		List<T> retorno = new ArrayList<T>();
+	public <T extends PrevalenceEntity> Map<String,T>  readRegistries(Class<T> classe) throws InternalPrevalenceException {
+		Map<String, T> retorno = new HashMap<String, T>();
 		JSONDeserializer<T> deserializer = new JSONDeserializer<T>();
 		FileBalancer fileBalancer =  getFileBalancer(classe);
 		List<File> balancedDirectories = fileBalancer.listBalancedDirectories();
@@ -73,8 +78,9 @@ public class FileCore {
 					continue;
 				}
 				try {
-					T entity = deserializer.deserialize(Files.readString(dataFile.toPath()));
-					retorno.add(entity);
+					String json = Files.readString(dataFile.toPath());
+					T entity = deserializer.deserialize(json);
+					retorno.put(json, entity);
 					fileBalancer.addPath(entity.getId(), dataFile.toPath());
 				} catch (IOException e) {
 					throw LoggerUtil.error(logger, e, "Error while deserialize entities = %1$s, file = %2$s", classe, dataFile.getName());
@@ -125,10 +131,10 @@ public class FileCore {
 			fileBalancer.listBalancedDirectories();
 		}
 		Path fileRegisterPath = fileBalancer.getPath(entity.getId());		
-		OperationType operationType = OperationType.UPDATE;
+		MemoryOperationType operationType = MemoryOperationType.UPDATE;
 		File fileRegister = null;
 		if (fileRegisterPath == null) {
-			operationType = OperationType.SAVE;
+			operationType = MemoryOperationType.SAVE;
 			String fileName = getFileRegisterName(classe, entity.getId());
 			fileRegister = fileBalancer.getNewFile(fileName);
 			try {
@@ -146,8 +152,8 @@ public class FileCore {
 			throw LoggerUtil.error(logger, e, "Error writing file for entity class = %1$s, id = %2$d, json = %3$s", classe, entity.getId(), json);
 		}
 		if (!isControlFile) {
-			HistoryJornalWriter.writeHistory(fileRegister);
-			HistoryJornalWriter.appendJournal(getFilePath(classe), operationType, entity.getId(), json);
+			HistoryJornalWriter.writeHistory(fileRegister, dateProvider);
+			HistoryJornalWriter.appendJournal(getFilePath(classe), operationType, entity.getId(), json, dateProvider);
 		}
 	}
 	
@@ -161,7 +167,7 @@ public class FileCore {
 			throw LoggerUtil.error(logger, e, "Error deleting entity class = %1$s, id = %2$d, file = %3$s", classe, id, fileRegisterPath.getFileName());
 		}
 		try {
-			HistoryJornalWriter.appendJournal(getFilePath(classe), OperationType.DELETE, id, "deleted");
+			HistoryJornalWriter.appendJournal(getFilePath(classe), MemoryOperationType.DELETE, id, "deleted", dateProvider);
 		} catch (Exception e) {
 			throw LoggerUtil.error(logger, e, "Error wrinting journal while delete entity class = %1$s, id = %2$d, file = %3$s", classe, id, fileRegisterPath.getFileName());
 		}
@@ -195,6 +201,17 @@ public class FileCore {
 		}		
 		return prevalentClasses;
 	}
+	
+	public <T extends PrevalenceEntity> List<File> listVersions(Class<T> classe, Long id) throws InternalPrevalenceException {
+		FileNameFilterClassId fileFilter = new FileNameFilterClassId(classe.getSimpleName(), id);
+		List<File> files = new ArrayList<File>();
+		FileBalancer fileBalancer = getFileBalancer(classe);
+		List<File> directories = fileBalancer.listBalancedDirectories();		
+		for (File directory : directories) {
+			files.addAll(Arrays.asList(directory.listFiles(fileFilter)));
+		}
+		return files;
+	}  
 	
 	private <T extends PrevalenceEntity> FileBalancer getFileBalancer(Class<T> classe) throws InternalPrevalenceException {
 		if (entitiesBalancers.containsKey(classe)) {

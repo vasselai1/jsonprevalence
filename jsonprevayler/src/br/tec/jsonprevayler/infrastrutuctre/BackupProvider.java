@@ -21,7 +21,7 @@ public class BackupProvider {
 	private final PrevalentBinaryRepository prevalenceBinary;
 	
 	public BackupProvider(PrevalenceConfigurator prevalenceConfigurator) {
-		fileCore = new FileCore(prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getSystemName(), prevalenceConfigurator.getNumberOfFilesPerDiretory());
+		fileCore = new FileCore(prevalenceConfigurator.getPrevalencePath(), prevalenceConfigurator.getSystemName(), prevalenceConfigurator.getNumberOfFilesPerDiretory(), prevalenceConfigurator.getDateProvider());
 		memoryCore = new MemoryCore(fileCore);
 		prevalenceBinary = new PrevalentBinaryRepository(prevalenceConfigurator);
 	}

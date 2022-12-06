@@ -17,7 +17,8 @@ import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.HistoryJornalWriter;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
-import br.tec.jsonprevayler.pojojsonrepository.core.OperationType;
+import br.tec.jsonprevayler.pojojsonrepository.core.MemoryOperationType;
+import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
 import br.tec.jsonprevayler.util.LoggerUtil;
 
 /**
@@ -33,11 +34,13 @@ public class PrevalentBinaryRepository {
 	private final String FILE_NAME_PREFIX = "file_";
 	private final String FILE_NAME_SUFIX = ".bin";
 	private final SequenceProvider sequenceUtil;
+	private final DateProvider dateProvider;
 	private static boolean inMaintenance = false;
 	
 	private Logger logger = Logger.getLogger(getClass().getName());
 	
 	public PrevalentBinaryRepository(PrevalenceConfigurator prevalenceConfigurator) {
+		this.dateProvider = prevalenceConfigurator.getDateProvider();
 		this.systemPath = prevalenceConfigurator.getPrevalencePath() + FS + prevalenceConfigurator.getSystemName();
 		sequenceUtil = new SequenceProvider(systemPath);
 	}	
@@ -69,8 +72,8 @@ public class PrevalentBinaryRepository {
 		} catch (Exception e) {
 			throw LoggerUtil.error(logger, e, "Error reading file %1$s to memory", file.getName());
 		}
-		HistoryJornalWriter.writeHistory(file);
-		HistoryJornalWriter.appendJournal(getFilePath(), OperationType.SAVE, id, binaryRepository.get(id));
+		HistoryJornalWriter.writeHistory(file, dateProvider);
+		HistoryJornalWriter.appendJournal(getFilePath(), MemoryOperationType.SAVE, id, binaryRepository.get(id), dateProvider);
 		return id;
 	}
 	
@@ -106,8 +109,8 @@ public class PrevalentBinaryRepository {
 				throw LoggerUtil.error(logger, e, "Error reading binary file %1$s to memory", file.getName());
 			}
 		}		
-		HistoryJornalWriter.writeHistory(file);
-		HistoryJornalWriter.appendJournal(getFilePath(), OperationType.UPDATE, id, binaryRepository.get(id));
+		HistoryJornalWriter.writeHistory(file, dateProvider);
+		HistoryJornalWriter.appendJournal(getFilePath(), MemoryOperationType.UPDATE, id, binaryRepository.get(id), dateProvider);
 	}
 	
 	public void delete(Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
@@ -126,7 +129,7 @@ public class PrevalentBinaryRepository {
 				binaryRepository.remove(id);
 			}
 		}
-		HistoryJornalWriter.appendJournal(getFilePath(), OperationType.DELETE, id, "deleted");
+		HistoryJornalWriter.appendJournal(getFilePath(), MemoryOperationType.DELETE, id, "deleted", dateProvider);
 	}
 		
 	public void get(Long id, OutputStream outputStream) throws InternalPrevalenceException, ValidationPrevalenceException {		

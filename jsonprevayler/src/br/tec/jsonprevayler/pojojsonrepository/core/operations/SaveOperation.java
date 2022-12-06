@@ -1,7 +1,5 @@
 package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
-import java.util.logging.Logger;
-
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.entity.TotalChangesPrevalenceSystem;
 import br.tec.jsonprevayler.entity.VersionedEntity;
@@ -11,7 +9,7 @@ import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
 import br.tec.jsonprevayler.pojojsonrepository.core.MemoryCore;
-import br.tec.jsonprevayler.pojojsonrepository.core.OperationType;
+import br.tec.jsonprevayler.pojojsonrepository.core.MemoryOperationType;
 import br.tec.jsonprevayler.util.LoggerUtil;
 import br.tec.jsonprevayler.util.ObjectCopyUtil;
 
@@ -19,15 +17,10 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 
 	private T entity;
 	private Class<T> classeInternal;
-	private final Logger logger = Logger.getLogger(getClass().getName());
 	
 	public SaveOperation() { }
 	
 	public SaveOperation(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
-		setCore(prevalenceConfigurator, sequenceUtil, memoryCore, fileCore);
-	}
-
-	public void setCore(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
 		setCore(prevalenceConfigurator, memoryCore, fileCore, sequenceUtil);
 	}
 
@@ -69,7 +62,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 			updateState(OperationState.ENTITY_WRITED);
 			sequenceProvider.get(TotalChangesPrevalenceSystem.class);
 			updateState(OperationState.PREVALENCE_VERSION_UPDATED);
-			memoryCore.updateMemory(classeInternal, OperationType.SAVE, entitySave);
+			memoryCore.updateMemory(classeInternal, MemoryOperationType.SAVE, entitySave);
 			updateState(OperationState.MEMORY_UPDATED);
 			updateState(OperationState.FINALIZED);
 		} catch (Exception e) {
@@ -82,7 +75,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 	public void undo() throws InternalPrevalenceException, ValidationPrevalenceException {
 		switch (getState()) {
 			case MEMORY_UPDATED: {
-				memoryCore.updateMemory(classeInternal, OperationType.DELETE, entity);
+				memoryCore.updateMemory(classeInternal, MemoryOperationType.DELETE, entity);
 				updateState(OperationState.UNDO_DELETE_MEMORY);
 			}
 			case ENTITY_WRITED: {
@@ -103,6 +96,11 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 	@SuppressWarnings("unchecked")
 	public T getEntity() {
 		return entity;
+	}
+
+	@Override
+	public String getOperationName() {		
+		return "SaveOperation" + entity.getClass() + "_" + entity.getId();
 	}
 	
 }

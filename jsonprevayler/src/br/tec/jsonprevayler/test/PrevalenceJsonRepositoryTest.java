@@ -54,7 +54,7 @@ class PrevalenceJsonRepositoryTest {
 		}
 	}
 
-	//@Test
+	@Test
 	public void testUpdateList() throws Exception {
 		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());
 	
