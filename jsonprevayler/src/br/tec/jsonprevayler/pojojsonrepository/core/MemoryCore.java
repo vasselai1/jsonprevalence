@@ -1,15 +1,13 @@
 package br.tec.jsonprevayler.pojojsonrepository.core;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import br.tec.jsonprevayler.annotations.MappedSuperClassPrevalenceRepository;
-import br.tec.jsonprevayler.entity.OperationLog;
-import br.tec.jsonprevayler.entity.OperationStatus;
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
@@ -17,13 +15,13 @@ import br.tec.jsonprevayler.infrastrutuctre.PrevalenceChangeObserver;
 import flexjson.JSONSerializer;
 
 public class MemoryCore implements MemorySearchEngineInterface {
-	
-	private static final List<Class<? extends PrevalenceEntity>> controlClasses = Arrays.asList(OperationLog.class, OperationStatus.class);
-	private static Map<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>> pojoRepository = null;
-	private static Map<Class<? extends PrevalenceEntity>, Map<Long, String>> jsonRepository = null;
+
+	private static volatile Map<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>> pojoRepository = null;
+	private static volatile Map<Class<? extends PrevalenceEntity>, Map<Long, String>> jsonRepository = null;
 	private static final List<PrevalenceChangeObserver> observers = new ArrayList<PrevalenceChangeObserver>();
 	private static boolean inMaintenance = false;
 	private FileCore fileCore;
+	private static final Logger logger = Logger.getLogger(MemoryCore.class.getName());
 	
 	public MemoryCore(FileCore fileCore) {
 		this.fileCore = fileCore;
@@ -76,37 +74,47 @@ public class MemoryCore implements MemorySearchEngineInterface {
 		if (pojoRepository.containsKey(classe)) {
 			return;
 		}
-		pojoRepository.put(classe, new HashMap<Long, PrevalenceEntity>());
+		newMapForEntity(classe);
 	}	
+	
+	private static <T extends PrevalenceEntity> void newMapForEntity(Class<T> classe) {
+		if (pojoRepository.get(classe) != null) {
+			return;
+		}
+		synchronized (pojoRepository) {
+			if (pojoRepository.get(classe) != null) {
+				return;
+			}
+			pojoRepository.put(classe, new HashMap<Long, PrevalenceEntity>());
+			jsonRepository.put(classe, new HashMap<Long, String>());
+		}
+		
+	}
 	
 	private static synchronized void initAllStoredPrevalentRepositories(FileCore fileCore, JSONSerializer serializer) throws InternalPrevalenceException, ValidationPrevalenceException {
 		if (pojoRepository != null) {
 			return;
 		}
+		logger.info("Start Init All MemoryCore");
 		pojoRepository = new HashMap<Class<? extends PrevalenceEntity>, Map<Long, ? super PrevalenceEntity>>();
 		jsonRepository = new HashMap<Class<? extends PrevalenceEntity>, Map<Long,String>>();
 		List<Class<? extends PrevalenceEntity>> initializedPrevalentClasses = new ArrayList<Class<? extends PrevalenceEntity>>();
-		for (Class<? extends PrevalenceEntity> classe : fileCore.listAllPrevalentClasses()) {			
-			if (ignoreLoad(classe)) {
-				continue;
-			}
+		for (Class<? extends PrevalenceEntity> classe : fileCore.listAllPrevalentClasses()) {
+			logger.info("Start init memory for: " + classe.getCanonicalName());
 			Class<? extends PrevalenceEntity> classeRepository = getClassRepository(classe);
-			pojoRepository.put(classeRepository, new HashMap<Long, PrevalenceEntity>());
-			jsonRepository.put(classeRepository, new HashMap<Long, String>());
+			newMapForEntity(classeRepository);
 			Map<String, ? extends PrevalenceEntity> registries = fileCore.readRegistries(classe);
+			logger.info("Total of registries: " + registries.size());
 			for (String jsonLoop : registries.keySet()) {
 				PrevalenceEntity entityLoop = registries.get(jsonLoop);
 				pojoRepository.get(classeRepository).put(entityLoop.getId(), entityLoop);
 				jsonRepository.get(classeRepository).put(entityLoop.getId(), jsonLoop);
 			}
 			initializedPrevalentClasses.add(classeRepository);
+			logger.info("End init memory for: " + classe.getCanonicalName());
 		}
+		logger.info("End Init All MemoryCore");
 	}
-	
-	private static <T extends PrevalenceEntity> boolean ignoreLoad(Class<T> classe) {
-		return controlClasses.contains(classe);
-	}
-	
 	
 	@Override
 	public <T extends PrevalenceEntity> Integer count(Class<T> classe) throws InternalPrevalenceException, ValidationPrevalenceException {

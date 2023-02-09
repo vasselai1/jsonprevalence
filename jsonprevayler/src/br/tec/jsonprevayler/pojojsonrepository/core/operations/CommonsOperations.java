@@ -22,6 +22,7 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 
 	public static final SimpleDateFormat SDF_OPERATION_TIME = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ssS");
 	public static final SimpleDateFormat SDF_STATE_TIME = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.S");
+	public static final SimpleDateFormat SDF_MOMENT = new SimpleDateFormat("HH:mm:ss.S");
 	
 	protected static final String ERROR = "Error";
 	protected static final String ENTITY = "Entity";
@@ -115,7 +116,7 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 		if (!prevalenceConfigurator.isStoreOperationsDetails()) {
 			return;
 		}
-		operationWriter.writeLn(getOperationFile(), state.toString(), SDF_STATE_TIME.format(moment));
+		operationWriter.writeLn(getOperationFile(), state.toString(), SDF_MOMENT.format(moment));
 	}
 	
 	protected void initStateAssinc(Class<T> classe, Object entity, Date moment) throws InternalPrevalenceException, ValidationPrevalenceException {

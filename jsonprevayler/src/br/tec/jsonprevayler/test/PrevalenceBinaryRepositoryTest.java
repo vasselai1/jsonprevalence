@@ -19,7 +19,7 @@ class PrevalenceBinaryRepositoryTest {
 		prevalence.update(id, "alterado alterado alterado".getBytes());
 	}
 
-	//@Test
+	@Test
 	void testDelete() throws IOException, Exception {
 		PrevalentBinaryRepository prevalence = new PrevalentBinaryRepository(TestPrevalenceConfigurator.getConfigurator()); 
 		

@@ -104,7 +104,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 
 	@Override
 	public String getOperationName() {		
-		return "SaveOperation_" + classeInternal.getCanonicalName() + "_" + entity.getId();
+		return "SaveOperation_" + classeInternal.getCanonicalName();
 	}
 	
 }
