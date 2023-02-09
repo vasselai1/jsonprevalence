@@ -12,7 +12,7 @@ import br.tec.jsonprevayler.infrastrutuctre.PrevalenceChangeObserver;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.operations.CustomOperation;
-import br.tec.jsonprevayler.pojojsonrepository.core.operations.DeleteHistoryAndDetailsOperation;
+import br.tec.jsonprevayler.pojojsonrepository.core.operations.DeleteHistoryOperation;
 import br.tec.jsonprevayler.pojojsonrepository.core.operations.DeleteOperation;
 import br.tec.jsonprevayler.pojojsonrepository.core.operations.ListVersionsOperation;
 import br.tec.jsonprevayler.pojojsonrepository.core.operations.OverwriteOperation;
@@ -57,7 +57,7 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	private final JoSqlGroupInMapOperation<T> joSqlGroupInMapOperation;
 	private final ListVersionsOperation<T> listVersionsOperation;
 	private final OverwriteOperation<T> overwriteOperation;
-	private final DeleteHistoryAndDetailsOperation<T> deleteHistoryAndDetailsOperation;
+	private final DeleteHistoryOperation<T> deleteHistoryAndDetailsOperation;
 
 	public OperationsControler(PrevalenceConfigurator prevalenceConfigurator, SearchProcessorFactory searchProcessorFactory) {
 		this.prevalenceConfigurator = prevalenceConfigurator;
@@ -80,7 +80,7 @@ public class OperationsControler <T extends PrevalenceEntity> {
 		joSqlGroupInMapOperation = new JoSqlGroupInMapOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
 		listVersionsOperation = new ListVersionsOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
 		overwriteOperation = new OverwriteOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
-		deleteHistoryAndDetailsOperation = new DeleteHistoryAndDetailsOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
+		deleteHistoryAndDetailsOperation = new DeleteHistoryOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
 	}
 
 	public void save(T entity) throws InternalPrevalenceException, ValidationPrevalenceException {

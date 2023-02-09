@@ -21,7 +21,7 @@ public class SequenceProvider {
 	public SequenceProvider(String systemPath) {
 		this.systemPath = systemPath;
 	}
-
+	
 	public <T extends PrevalenceEntity> long get(Class<T> classEntity) throws InternalPrevalenceException {
 		String entityName = classEntity.getCanonicalName();
 		long retorno = 0;

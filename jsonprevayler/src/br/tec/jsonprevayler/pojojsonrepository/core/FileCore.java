@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
-import br.tec.jsonprevayler.infrastrutuctre.HistoryJornalWriter;
+import br.tec.jsonprevayler.infrastrutuctre.HistoryWriter;
 import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
 import br.tec.jsonprevayler.pojojsonrepository.core.util.FileNameFilterClassId;
 import br.tec.jsonprevayler.util.LoggerUtil;
@@ -130,11 +130,9 @@ public class FileCore {
 		if (fileBalancer.isActualPathNotInitialized()) {
 			fileBalancer.listBalancedDirectories();
 		}
-		Path fileRegisterPath = fileBalancer.getPath(entity.getId());		
-		MemoryOperationType operationType = MemoryOperationType.UPDATE;
+		Path fileRegisterPath = fileBalancer.getPath(entity.getId());				
 		File fileRegister = null;
-		if (fileRegisterPath == null) {
-			operationType = MemoryOperationType.SAVE;
+		if (fileRegisterPath == null) {		
 			String fileName = getFileRegisterName(classe, entity.getId());
 			fileRegister = fileBalancer.getNewFile(fileName);
 			try {
@@ -152,8 +150,7 @@ public class FileCore {
 			throw LoggerUtil.error(logger, e, "Error writing file for entity class = %1$s, id = %2$d, json = %3$s", classe, entity.getId(), json);
 		}
 		if (!isControlFile) {
-			HistoryJornalWriter.writeHistory(fileRegister, dateProvider);
-			HistoryJornalWriter.appendJournal(getFilePath(classe), operationType, entity.getId(), json, dateProvider);
+			new HistoryWriter(getFilePath(classe), maxFilesPerDiretory).writeHistory(fileRegister, dateProvider);
 		}
 	}
 	
@@ -165,11 +162,6 @@ public class FileCore {
 			}
 		} catch (IOException e) {
 			throw LoggerUtil.error(logger, e, "Error deleting entity class = %1$s, id = %2$d, file = %3$s", classe, id, fileRegisterPath.getFileName());
-		}
-		try {
-			HistoryJornalWriter.appendJournal(getFilePath(classe), MemoryOperationType.DELETE, id, "deleted", dateProvider);
-		} catch (Exception e) {
-			throw LoggerUtil.error(logger, e, "Error wrinting journal while delete entity class = %1$s, id = %2$d, file = %3$s", classe, id, fileRegisterPath.getFileName());
 		}
 	}
 	

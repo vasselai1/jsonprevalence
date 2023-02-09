@@ -7,11 +7,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
-import br.tec.jsonprevayler.infrastrutuctre.HistoryJornalWriter;
+import br.tec.jsonprevayler.infrastrutuctre.HistoryWriter;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
@@ -20,7 +21,7 @@ import br.tec.jsonprevayler.util.LoggerUtil;
 
 public class ListVersionsOperation <T extends PrevalenceEntity> extends CommonsOperations<T> {
 
-	private static final SimpleDateFormat SDF_HISTORY = HistoryJornalWriter.SDF_HISTORY;
+	private static final SimpleDateFormat SDF_HISTORY = HistoryWriter.SDF_HISTORY;
 	
 	private Class<T> classe;
 	private Class<T> classeInternal;
@@ -36,21 +37,34 @@ public class ListVersionsOperation <T extends PrevalenceEntity> extends CommonsO
 		return this;
 	}
 	
+	public Date getLast() throws InternalPrevalenceException, ValidationPrevalenceException {		
+		return new TreeSet<Date>(list().keySet()).last();
+	}
+	
 	public Map<Date, String> list() throws InternalPrevalenceException, ValidationPrevalenceException {
 		classeInternal = getClassRepository(classe);
+		initState();		
+		writeOperationDetail(INTERNAL_CLASS, classeInternal.getCanonicalName());
 		Map<Date, String> versionsMap = new HashMap<Date, String>();
-		List<File> entityFiles = fileCore.listVersions(classeInternal, id);
-		if (entityFiles.isEmpty()) {
-			throw new ValidationPrevalenceException("File sytem do not contain versions from class " + classeInternal + " and id = " + id);
-		}
-		for (File fileVersion: entityFiles) {
-			Date dateVersion = getDateVersionName(fileVersion.getName());
-			try {
-				String json = Files.readString(fileVersion.toPath());
-				versionsMap.put(dateVersion, json);
-			} catch (Exception ex) {
-				throw LoggerUtil.error(logger, ex, "Error reading file %1$s from class %2$s and id = %3$d", fileVersion.getName(), classeInternal.getSimpleName(), id);
+		try {
+			List<File> entityFiles = fileCore.listVersions(classeInternal, id);
+			if (entityFiles.isEmpty()) {
+				throw new ValidationPrevalenceException("File sytem do not contain versions from class " + classeInternal + " and id = " + id);
 			}
+			for (File fileVersion: entityFiles) {
+				Date dateVersion = getDateVersionName(fileVersion.getName());
+				try {
+					String json = Files.readString(fileVersion.toPath());
+					versionsMap.put(dateVersion, json);
+				} catch (Exception ex) {
+					throw LoggerUtil.error(logger, ex, "Error reading file %1$s from class %2$s and id = %3$d", fileVersion.getName(), classeInternal.getSimpleName(), id);
+				}
+			}
+		} catch (Exception e) {
+			writeOperationDetail(ERROR, e.getMessage());
+			throw LoggerUtil.error(logger, e, "Error in List versions for entity = %1$s, id = %2$d", classeInternal.getCanonicalName(), id);
+		} finally {
+			updateState(OperationState.FINALIZED);
 		}
 		return versionsMap;
 	}

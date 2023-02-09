@@ -3,12 +3,12 @@ package br.tec.jsonprevayler.util;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import br.tec.jsonprevayler.infrastrutuctre.HistoryJornalWriter;
+import br.tec.jsonprevayler.infrastrutuctre.HistoryWriter;
 import br.tec.jsonprevayler.pojojsonrepository.core.util.DateProvider;
 
 public class DeclaredDateProvider implements DateProvider {
 	
-	public static final SimpleDateFormat SDF_HISTORY = HistoryJornalWriter.SDF_HISTORY;
+	public static final SimpleDateFormat SDF_HISTORY = HistoryWriter.SDF_HISTORY;
 	
 	private Date date;
 	

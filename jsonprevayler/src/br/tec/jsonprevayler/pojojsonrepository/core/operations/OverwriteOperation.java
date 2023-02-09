@@ -7,10 +7,9 @@ import java.util.Date;
 import java.util.List;
 
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
-import br.tec.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionException;
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
-import br.tec.jsonprevayler.infrastrutuctre.HistoryJornalWriter;
+import br.tec.jsonprevayler.infrastrutuctre.HistoryWriter;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
@@ -20,18 +19,20 @@ import flexjson.JSONDeserializer;
 
 public class OverwriteOperation <T extends PrevalenceEntity> extends CommonsOperations<T> {
 
-	private static final SimpleDateFormat SDF_HISTORY = HistoryJornalWriter.SDF_HISTORY;
+	private static final SimpleDateFormat SDF_HISTORY = HistoryWriter.SDF_HISTORY;
 	
 	private UpdateOperation<T> updateOperation;
 	private Class<T> classe;
 	private Class<T> classeInternal;
 	private Long id;
 	private Date dateVersion;	
+	private ListVersionsOperation<T> listVersionsOperation;
 	
 	public OverwriteOperation(PrevalenceConfigurator prevalenceConfigurator, SequenceProvider sequenceUtil, MemoryCore memoryCore, FileCore fileCore) {
 		setCore(prevalenceConfigurator, memoryCore, fileCore, sequenceUtil);
 		updateOperation = new UpdateOperation<T>(prevalenceConfigurator,sequenceUtil, memoryCore, fileCore);
 		updateOperation.setIsOverwrite(true);
+		listVersionsOperation = new ListVersionsOperation<T>(prevalenceConfigurator, sequenceUtil, memoryCore, fileCore);
 	}
 	
 	public OverwriteOperation<T> set(Class<T> classe, Long id, Date dateVersion) {
@@ -43,18 +44,27 @@ public class OverwriteOperation <T extends PrevalenceEntity> extends CommonsOper
 	
 	public void execute() throws ValidationPrevalenceException, InternalPrevalenceException {
 		classeInternal = getClassRepository(classe);
-		List<File> entityFiles = fileCore.listVersions(classeInternal, id);
-		File selectedFile = getFile(entityFiles);
-		T entity = null;
+		initState();
+		writeOperationDetail(INTERNAL_CLASS, classeInternal.getCanonicalName());
+		File selectedFile = null;
 		try {
-			entity = new JSONDeserializer<T>().deserialize(Files.readString(selectedFile.toPath()));
-		} catch (Exception e) {
-			throw LoggerUtil.error(logger, e, "Error while deserialize entity = %1$s, id = %2$d, file = %3$s! Verify compatibilty whitch actual POJO.", classe, id, selectedFile.getName());
-		}
-		try {
+			if (dateVersion == null) {
+				dateVersion = listVersionsOperation.getLast();
+			}
+			List<File> entityFiles = fileCore.listVersions(classeInternal, id);
+			selectedFile = getFile(entityFiles);
+			T entity = null;
+			try {
+				entity = new JSONDeserializer<T>().deserialize(Files.readString(selectedFile.toPath()));
+			} catch (Exception e) {
+				throw LoggerUtil.error(logger, e, "Error while deserialize entity = %1$s, id = %2$d, file = %3$s! Verify compatibilty whitch actual POJO.", classeInternal, id, selectedFile.getName());
+			}
 			updateOperation.set(entity).execute();
-		} catch (DeprecatedPrevalenceEntityVersionException e) {
-			throw LoggerUtil.error(logger, e, "Never.", classe, id, selectedFile.getName());
+		} catch (Exception e) {
+			writeOperationDetail(ERROR, e.getMessage());
+			throw LoggerUtil.error(logger, e, "Error while overwrite entity entity = %1$s, id = %2$d, file = %3$s", classeInternal, id, selectedFile.getName());
+		} finally {
+			updateState(OperationState.FINALIZED);
 		}
 	}
 	
@@ -68,10 +78,10 @@ public class OverwriteOperation <T extends PrevalenceEntity> extends CommonsOper
 		}
 		throw new ValidationPrevalenceException(fileName + " not found!");
 	}
-
+	
 	@Override
 	public String getOperationName() {		
-		return "ListVersionsOperation_" + classe + "_" + id;
+		return "OverwriteOperation_" + classe + "_" + id + "_" + SDF_HISTORY.format(dateVersion);
 	}
 	
 }

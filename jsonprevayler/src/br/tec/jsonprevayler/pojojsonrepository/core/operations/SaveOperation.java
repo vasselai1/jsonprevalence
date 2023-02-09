@@ -30,8 +30,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 	}
 	
 	public void execute() throws InternalPrevalenceException, ValidationPrevalenceException {		
-		classeInternal = getClassRepository(entity.getClass());
-		initState(classeInternal, entity);
+		classeInternal = getClassRepository(entity.getClass());		
 		if (classeInternal == null) {
 			throw new ValidationPrevalenceException("Classe is null!");
 		}
@@ -40,8 +39,12 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 		}
 		if (entity.getId() != null) {
 			throw new ValidationPrevalenceException("Id is seted!");
-		}		
+		}
+		initState();
+		writeOperationDetail(ENTITY, getJson(entity));
+		writeOperationDetail(INTERNAL_CLASS, classeInternal.getCanonicalName());
 		Long id = sequenceProvider.get(classeInternal);
+		writeOperationDetail("NewId", id.toString());
 		updateState(OperationState.ID_CREATED);
 		if (memoryCore.isIdUsed(classeInternal, id)) {
 			throw new InternalPrevalenceException("Id " + id + " is repeated! Please see the max value id in entities " + entity.getClass().getCanonicalName() + " and set +1 in sequence file!");
@@ -67,7 +70,8 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 			updateState(OperationState.FINALIZED);
 		} catch (Exception e) {
 			undo();
-			updateState(OperationState.CANCELED, e.getMessage());
+			updateState(OperationState.CANCELED);
+			writeOperationDetail("error", e.getMessage());
 			throw LoggerUtil.error(logger, e, "Error save entity = %1$s, id = %2$d", classeInternal, id);
 		}
 	}	
@@ -100,7 +104,7 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 
 	@Override
 	public String getOperationName() {		
-		return "SaveOperation" + entity.getClass() + "_" + entity.getId();
+		return "SaveOperation_" + classeInternal.getCanonicalName() + "_" + entity.getId();
 	}
 	
 }

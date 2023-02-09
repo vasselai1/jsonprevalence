@@ -1,15 +1,16 @@
 package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import br.tec.jsonprevayler.annotations.MappedSuperClassPrevalenceRepository;
-import br.tec.jsonprevayler.entity.OperationLog;
-import br.tec.jsonprevayler.entity.OperationStatus;
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
+import br.tec.jsonprevayler.infrastrutuctre.OperationWriter;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
@@ -19,20 +20,29 @@ import flexjson.JSONSerializer;
 
 public abstract class CommonsOperations <T extends PrevalenceEntity> {
 
+	public static final SimpleDateFormat SDF_OPERATION_TIME = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ssS");
+	public static final SimpleDateFormat SDF_STATE_TIME = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.S");
+	
+	protected static final String ERROR = "Error";
+	protected static final String ENTITY = "Entity";
+	protected static final String ID = "Id";
+	protected static final String CLASS = "Class";
+	protected static final String INTERNAL_CLASS = "InternalClass";
+	
 	protected PrevalenceConfigurator prevalenceConfigurator;
 	protected MemoryCore memoryCore;
 	protected FileCore fileCore;
 	protected SequenceProvider sequenceProvider;
 	protected DateProvider dateProvider;
+	protected Logger logger = Logger.getLogger(getClass().getName());
+	protected JSONSerializer jsonSerializer = new JSONSerializer();
+	private OperationWriter operationWriter;
+	private File operationFile;
+	
 	private Date initialMoment;
 	private Date finalMoment;
-	protected Logger logger = Logger.getLogger(getClass().getName());
 	private OperationState state;
-	private OperationLog operationLog;
-	private OperationStatus operationStatus;
-	private JSONSerializer serializer = new JSONSerializer();
 	
-
 	public void setCore(PrevalenceConfigurator prevalenceConfigurator, MemoryCore memoryCore, FileCore fileCore, SequenceProvider sequenceProvider) {
 		this.prevalenceConfigurator = prevalenceConfigurator;
 		this.memoryCore = memoryCore;
@@ -40,6 +50,7 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 		this.sequenceProvider = sequenceProvider;
 		this.dateProvider = prevalenceConfigurator.getDateProvider();
 		initialMoment = dateProvider.get();
+		operationWriter = new OperationWriter(fileCore.getSystemFileDir(), prevalenceConfigurator.getNumberOfFilesPerDiretory());
 	}	
 	
 	public OperationState getState() {
@@ -72,10 +83,10 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 		}
 		return (Class<T>) classe;
 	}
-	protected void initState(Class<T> classe, Object entity) throws InternalPrevalenceException, ValidationPrevalenceException {
-		initState(classe, entity, null);
+	protected void initState() throws InternalPrevalenceException, ValidationPrevalenceException {
+		initState(null);
 	}
-	protected void initState(Class<T> classe, Object entity, Date moment) throws InternalPrevalenceException, ValidationPrevalenceException {		
+	protected void initState(Date moment) throws InternalPrevalenceException, ValidationPrevalenceException {		
 		state = OperationState.INITIALIZED;
 		if (!prevalenceConfigurator.isStoreOperationsDetails()) {
 			return;
@@ -83,36 +94,28 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 		if (moment == null) {
 			moment = dateProvider.get();
 		}
-		operationLog = new OperationLog(classe.getName(), getClass().getSimpleName(), serializer.deepSerialize(entity));
-		operationLog.setInitMoment(moment);
-		operationLog.setId(sequenceProvider.get(OperationLog.class));
-		operationStatus = new OperationStatus(operationLog.getId());
-		fileCore.writeRegister(OperationLog.class, operationLog, true);
-		fileCore.writeRegister(OperationStatus.class, operationStatus, true);
+		operationWriter.writeLn(getOperationFile(), state.toString(), SDF_STATE_TIME.format(moment));
 	}
 	
+	protected void writeOperationDetail(String key, String value) throws InternalPrevalenceException {
+		operationWriter.writeLn(getOperationFile(), key, value);
+	}
+
 	protected void updateState(OperationState operationState) throws InternalPrevalenceException {
-		updateState(operationState, null, null);
+		updateState(operationState, null);
 	}
-	protected void updateState(OperationState operationState, String mensage) throws InternalPrevalenceException {
-		updateState(operationState, mensage, null);
-	}
-	protected void updateState(OperationState operationState, String mensage, Date moment) throws InternalPrevalenceException {
+	protected void updateState(OperationState operationState, Date moment) throws InternalPrevalenceException {
 		state = operationState;
+		if (moment == null) {
+			moment = new Date();
+		}
 		if (OperationState.FINALIZED.equals(operationState)) {
 			finalMoment = dateProvider.get();
 		}
 		if (!prevalenceConfigurator.isStoreOperationsDetails()) {
 			return;
 		}
-		if (moment == null) {
-			moment = new Date();
-		}
-		operationStatus.getStatus().put(state, moment);
-		if (mensage != null) {
-			operationStatus.addMessage(mensage);
-		}
-		fileCore.writeRegister(OperationStatus.class, operationStatus, true);		
+		operationWriter.writeLn(getOperationFile(), state.toString(), SDF_STATE_TIME.format(moment));
 	}
 	
 	protected void initStateAssinc(Class<T> classe, Object entity, Date moment) throws InternalPrevalenceException, ValidationPrevalenceException {
@@ -123,7 +126,7 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 		new Thread() {
 			public void run() {
 				try {
-					initState(classe, entity, moment);
+					initState(moment);
 				} catch (Exception e) {
 					logger.log(Level.SEVERE, "initStateAssinc error", e);
 				}
@@ -141,7 +144,7 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 		new Thread() {
 			public void run() {
 				try {
-					updateState(operationState, mensage, moment);		
+					updateState(operationState, moment);		
 				} catch (Exception e) {
 					logger.log(Level.SEVERE, "updateStateAssinc error", e);
 				}
@@ -149,6 +152,25 @@ public abstract class CommonsOperations <T extends PrevalenceEntity> {
 		}.start();
 	}
 	
+	private File getOperationFile() throws InternalPrevalenceException {
+		if (operationFile == null) {
+			operationFile = operationWriter.newOperationFile(getOperationFileName());
+		}
+		return operationFile;
+	}
+	
 	public abstract String getOperationName();
 	
+	private String getOperationFileName() {
+		StringBuilder fileNameBuilder = new StringBuilder();
+		fileNameBuilder.append(getOperationName());
+		fileNameBuilder.append("_");
+		fileNameBuilder.append(SDF_OPERATION_TIME.format(dateProvider.get()));
+		fileNameBuilder.append(".opr");
+		return fileNameBuilder.toString();
+	}
+	
+	protected String getJson(T entity) {
+		return jsonSerializer.deepSerialize(entity);
+	}
 }

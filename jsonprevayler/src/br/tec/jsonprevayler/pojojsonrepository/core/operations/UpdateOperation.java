@@ -35,7 +35,9 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 	@Override
 	public void execute() throws InternalPrevalenceException, ValidationPrevalenceException, DeprecatedPrevalenceEntityVersionException {
 		classeInternal = getClassRepository(entity.getClass());
-		initState(classeInternal, entity);
+		initState();
+		writeOperationDetail(ENTITY, getJson(entity));
+		writeOperationDetail(INTERNAL_CLASS, classeInternal.getCanonicalName());
 		if (entity == null) {
 			throw new ValidationPrevalenceException("Entity is null!");
 		}
@@ -69,7 +71,8 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 				updateState(OperationState.FINALIZED);
 			} catch (Exception e) {
 				undo();
-				updateState(OperationState.CANCELED, e.getMessage());
+				updateState(OperationState.CANCELED);
+				writeOperationDetail(ERROR, e.getMessage());
 				throw LoggerUtil.error(logger, e, "Error in update entity = %1$s, id = %2$d", classeInternal, entity.getId());
 			} finally {
 				entityToken.setEnd();
@@ -115,7 +118,7 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 
 	@Override
 	public String getOperationName() {
-		return "UpdateOperation_" + entity.getClass() + "_" + entity.getId();
+		return "UpdateOperation_" + classeInternal.getCanonicalName() + "_" + entity.getId();
 	}
 	
 }

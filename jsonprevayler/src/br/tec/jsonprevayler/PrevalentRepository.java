@@ -17,8 +17,8 @@ import br.tec.jsonprevayler.searchfilter.PrevalenceFilter;
 import br.tec.jsonprevayler.searchfilter.processing.searchprocessorfactory.SearchProcessorFactory;
 
 /**
- * Prevalence (file json and memory pojo) CRUD for java POJO with version control, history, journal, observer and backup. 
- * File system uses Json in balanced directories. 
+ * Prevalence (file json and memory pojo) CRUD for java POJO with version control, geopoints distance calc, phonetic math, history, journal, observer and backup. 
+ * File system uses Json in balanced directories.
  * @author vasselai1
  */
 public class PrevalentRepository {
@@ -103,6 +103,10 @@ public class PrevalentRepository {
 		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).overwrite(classe, id, versionDate);
 	}
 
+	public <T extends PrevalenceEntity> void overwriteLast(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
+		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).overwrite(classe, id, null);
+	}	
+	
 	public <T extends PrevalenceEntity> void deleteHistoryAndDetails(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
 		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).deleteHistoryAndDetails(classe, id);
 	}

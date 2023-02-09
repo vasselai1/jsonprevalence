@@ -41,10 +41,12 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 		}
 		classeInternal = getClassRepository(entity.getClass());		
 		entity = memoryCore.getPojo(classeInternal, id);
-		initState(classeInternal, entity);
 		if (entity == null) {
 			throw new ValidationPrevalenceException("Entity not found!");
-		}		
+		}
+		initState();
+		writeOperationDetail("class", entity.getClass().getCanonicalName());
+		writeOperationDetail("id", entity.getId().toString());
 		EntityTokenKey entityToken = LockPrevalenceEntityTokenFactory.get(entity, dateProvider);
 		synchronized (entityToken) {
 			entityToken.setUse("Delete");
@@ -52,6 +54,7 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 				VersionedEntity newVersionedEntity = (VersionedEntity) entity;
 				VersionedEntity oldVersionedEntity = (VersionedEntity) memoryCore.getPojo(classeInternal, entity.getId());
 				if (newVersionedEntity.getVersion() != oldVersionedEntity.getVersion()) {
+					writeOperationDetail("validation", "deprecated new = " + newVersionedEntity.getVersion() + " old = " + oldVersionedEntity.getVersion());
 					throw new DeprecatedPrevalenceEntityVersionException(classeInternal.getCanonicalName(), newVersionedEntity.getVersion(), oldVersionedEntity.getVersion());
 				}				
 			}
@@ -66,7 +69,8 @@ public class DeleteOperation <T extends PrevalenceEntity> extends CommonsOperati
 				updateState(OperationState.FINALIZED);
 			} catch (Exception e) {
 				undo();
-				updateState(OperationState.CANCELED, e.getMessage());
+				updateState(OperationState.CANCELED);
+				writeOperationDetail("error", e.getMessage());
 				throw LoggerUtil.error(logger, e, "Error in delete entity = %1$s, id = %2$d", classeInternal, id);
 			} finally {
 				entityToken.setEnd();

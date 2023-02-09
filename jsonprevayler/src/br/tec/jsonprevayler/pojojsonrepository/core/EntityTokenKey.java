@@ -16,6 +16,7 @@ public class EntityTokenKey {
 	public EntityTokenKey(Class<? extends PrevalenceEntity> classe, Long id, DateProvider dateProvider) {
 		this.classe = classe;
 		this.id = id;
+		this.dateProvider = dateProvider;
 	}
 
 	public void setUse(String description) {
@@ -39,5 +40,15 @@ public class EntityTokenKey {
 	public Date getCurrentMomentUse() {
 		return currentMomentUse;
 	}
-	
+
+	@Override
+	public String toString() {
+		StringBuilder result = new StringBuilder();
+		result.append("EntityTokenKey [classe=").append(classe);
+		result.append(", id=").append(id);
+		result.append(", currentUseDescription=").append(currentUseDescription);
+		result.append(", currentMomentUse=").append(currentMomentUse);
+		return result.toString();
+	}
+
 }
