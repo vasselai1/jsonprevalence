@@ -19,7 +19,7 @@ public class EncryptorDecryptorUtil {
 
   private String key;
   private Logger logger =  Logger.getLogger(getClass().getName());
-
+  
   public EncryptorDecryptorUtil(String key) {
       this.key = key;
   }
@@ -47,7 +47,7 @@ public class EncryptorDecryptorUtil {
           c.init(Cipher.ENCRYPT_MODE, skey, ps);
           return Base64.getEncoder().encodeToString(c.doFinal(text.getBytes()));
       } catch (Exception ex) {
-    	  logger.log(Level.SEVERE, "encrypt(" + text + ")", ex);
+    	  logger.log(Level.SEVERE, "Error encrypt(" + text + ")", ex);
           throw ex;
       }
   }
@@ -63,7 +63,7 @@ public class EncryptorDecryptorUtil {
           c.init(Cipher.DECRYPT_MODE, skey, ps);
           return new String(c.doFinal(Base64.getDecoder().decode(text)));
       } catch (Exception ex) {
-    	  logger.log(Level.SEVERE, "decrypt(" + text + ")", ex);
+    	  logger.log(Level.SEVERE, "Error decrypt(" + text + ")", ex);
           throw ex;
       }
   }

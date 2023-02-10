@@ -106,7 +106,7 @@ class PrevalenceJsonRepositoryTest {
 		PrevalentRepository prevalence = new PrevalentRepository(TestPrevalenceConfigurator.getConfigurator());		
 		
 		long initial = System.currentTimeMillis();
-		int count = 100;
+		int count = 1000;
 		for (int i = 0; i < count; i++) { 
 			String nome = HashUtil.getRandomString(70) + "_" + i;
 			String email = HashUtil.getRandomString(40);

@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -16,6 +18,7 @@ import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
+import br.tec.jsonprevayler.pojojsonrepository.core.FileBalancer;
 import br.tec.jsonprevayler.util.LoggerUtil;
 
 /**
@@ -25,6 +28,7 @@ import br.tec.jsonprevayler.util.LoggerUtil;
 public class PrevalentBinaryRepository {
 	
 	private static Map<Long, byte[]> binaryRepository = new HashMap<Long, byte[]>();
+	private FileBalancer binaryFileBalancer = null;
 	
 	private final String FS = File.separator;
 	private final String systemPath;
@@ -38,6 +42,7 @@ public class PrevalentBinaryRepository {
 	public PrevalentBinaryRepository(PrevalenceConfigurator prevalenceConfigurator) {		
 		this.systemPath = prevalenceConfigurator.getPrevalencePath() + FS + prevalenceConfigurator.getSystemName();
 		sequenceUtil = new SequenceProvider(systemPath);
+		binaryFileBalancer = new FileBalancer("GROUP_", prevalenceConfigurator.getNumberOfFilesPerDiretory(), getFilePath().toPath());
 	}	
 
 	public Set<Long> list() throws InternalPrevalenceException, ValidationPrevalenceException {
@@ -142,14 +147,21 @@ public class PrevalentBinaryRepository {
 	}	
 	
 	private File getBinaryFile(Long id) throws InternalPrevalenceException {
-		String name = FILE_NAME_PREFIX + id + FILE_NAME_SUFIX;
-		File binaryFile = new File(getFilePath(), name);
-		if (!binaryFile.exists()) {
+		String binaryFileName = FILE_NAME_PREFIX + id + FILE_NAME_SUFIX;
+		if (binaryFileBalancer.isActualPathNotInitialized()) {
+			binaryFileBalancer.listBalancedDirectories();
+		}
+		Path fileBinaryPath = binaryFileBalancer.getPath(id);
+		File binaryFile = null;
+		if (fileBinaryPath == null) {		
+			binaryFile = binaryFileBalancer.getNewFile(binaryFileName);
 			try {
 				binaryFile.createNewFile();
 			} catch (Exception e) {
 				throw LoggerUtil.error(logger, e, "Error creating a new file %1$d", binaryFile.getName());
 			}
+		} else {
+			binaryFile = fileBinaryPath.toFile();
 		}
 		return binaryFile;
 	}
@@ -175,22 +187,25 @@ public class PrevalentBinaryRepository {
 			if (!binaryRepository.isEmpty()) {
 				return;
 			}
-			File dirFiles = getFilePath();
-			File[] files = dirFiles.listFiles();
-			if (files == null) {
-				return;
-			}
-			for (File binFile : files) {
-				if (!binFile.getName().endsWith(".bin")) {
-					continue;
+			
+			List<File> balancedDirectories = binaryFileBalancer.listBalancedDirectories();
+			for (File directoryLoop : balancedDirectories) {				
+				File[] files = directoryLoop.listFiles();
+				if (files == null) {
+					return;
 				}
-				String fileNameId = binFile.getName().replace(FILE_NAME_PREFIX, "").replace(FILE_NAME_SUFIX, "");
-				Long id = Long.parseLong(fileNameId);
-				try {
-					binaryRepository.put(id, Files.readAllBytes(binFile.toPath()));
-				} catch (Exception e) {
-					throw LoggerUtil.error(logger, e, "Error reading binary file %1$s to memory", binFile.getName());
-				}
+				for (File binFile : files) {
+					if (!binFile.getName().endsWith(".bin")) {
+						continue;
+					}
+					String fileNameId = binFile.getName().replace(FILE_NAME_PREFIX, "").replace(FILE_NAME_SUFIX, "");
+					Long id = Long.parseLong(fileNameId);
+					try {
+						binaryRepository.put(id, Files.readAllBytes(binFile.toPath()));
+					} catch (Exception e) {
+						throw LoggerUtil.error(logger, e, "Error reading binary file %1$s to memory", binFile.getName());
+					}
+				}				
 			}
 		}
 	}
