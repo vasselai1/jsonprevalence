@@ -1,11 +1,14 @@
 package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
+import java.io.File;
+
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.entity.TotalChangesPrevalenceSystem;
 import br.tec.jsonprevayler.entity.VersionedEntity;
 import br.tec.jsonprevayler.exceptions.DeprecatedPrevalenceEntityVersionException;
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
+import br.tec.jsonprevayler.infrastrutuctre.HistoryWriter;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.EntityTokenKey;
@@ -59,8 +62,9 @@ public class UpdateOperation <T extends PrevalenceEntity> extends CommonsOperati
 			oldEntity = memoryCore.getPojo(classeInternal, entity.getId());
 			updateState(OperationState.VALIDATED);
 			try {
-				fileCore.writeRegister(classeInternal, entity);
+				File fileRegister = fileCore.writeRegister(classeInternal, entity);
 				updateState(OperationState.ENTITY_WRITED);
+				new HistoryWriter(fileCore.getFilePath(classeInternal), prevalenceConfigurator.getNumberOfFilesPerDiretory()).writeHistory(fileRegister, dateProvider);
 				sequenceProvider.get(TotalChangesPrevalenceSystem.class);
 				updateState(OperationState.PREVALENCE_VERSION_UPDATED);
 				memoryCore.updateMemory(classeInternal, MemoryOperationType.UPDATE, entity);

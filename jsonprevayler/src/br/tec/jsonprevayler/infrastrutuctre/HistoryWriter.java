@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -26,11 +27,16 @@ public class HistoryWriter {
 		this.maxFilesPerDiretory = maxFilesPerDiretory;
 	}
 
-	private File newHistoryFile(String fileName) throws InternalPrevalenceException {
+	private File getHistoryDir() {
 		File historyDir = new File(entityDirectory, "HISTORY");
 		if (!historyDir.exists()) {
 			historyDir.mkdir();
 		}
+		return historyDir;
+	}
+	
+	private File newHistoryFile(String fileName) throws InternalPrevalenceException {
+		File historyDir = getHistoryDir();
 		return getFileBalancer(historyDir).getNewFile(fileName);
 	}
 	
@@ -46,6 +52,11 @@ public class HistoryWriter {
 		} catch (Exception e) {
 			throw LoggerUtil.error(Logger.getLogger(HistoryWriter.class.getName()), e, "Error while copy history old file = %1$s, history file = %2$s", oldFile.getName(), historyFile.getName());
 		}
+	}
+	
+	public List<File> listDirectories() throws InternalPrevalenceException {
+		FileBalancer fileBalancer = getFileBalancer(getHistoryDir());
+		return fileBalancer.listBalancedDirectories();
 	}
 	
 	public static String getExtension(File file) {

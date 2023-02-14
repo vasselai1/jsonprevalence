@@ -90,7 +90,7 @@ public class FileCore {
 		return retorno;
 	}
 	
-	private <T extends PrevalenceEntity> File getFilePath(Class<T> classe) {
+	public <T extends PrevalenceEntity> File getFilePath(Class<T> classe) {
 		String canonicalClassEntityName = classe.getCanonicalName();
 		return getFilePath(canonicalClassEntityName);
 	}
@@ -121,11 +121,7 @@ public class FileCore {
 		return dirPathEntities;
 	}
 	
-	public <T extends PrevalenceEntity> void writeRegister(Class<T> classe, T entity) throws InternalPrevalenceException {
-		writeRegister(classe, entity, false);
-	}
-	
-	public <T extends PrevalenceEntity> void writeRegister(Class<T> classe, T entity, boolean isControlFile) throws InternalPrevalenceException {
+	public <T extends PrevalenceEntity> File writeRegister(Class<T> classe, T entity) throws InternalPrevalenceException {
 		FileBalancer fileBalancer = getFileBalancer(classe);
 		if (fileBalancer.isActualPathNotInitialized()) {
 			fileBalancer.listBalancedDirectories();
@@ -149,9 +145,7 @@ public class FileCore {
 		} catch (IOException e) {
 			throw LoggerUtil.error(logger, e, "Error writing file for entity class = %1$s, id = %2$d, json = %3$s", classe, entity.getId(), json);
 		}
-		if (!isControlFile) {
-			new HistoryWriter(getFilePath(classe), maxFilesPerDiretory).writeHistory(fileRegister, dateProvider);
-		}
+		return fileRegister;		
 	}
 	
 	public <T extends PrevalenceEntity> void deleteRegister(Class<T> classe, Long id) throws InternalPrevalenceException {
@@ -196,9 +190,8 @@ public class FileCore {
 	
 	public <T extends PrevalenceEntity> List<File> listVersions(Class<T> classe, Long id) throws InternalPrevalenceException {
 		FileNameFilterClassId fileFilter = new FileNameFilterClassId(classe.getSimpleName(), id);
-		List<File> files = new ArrayList<File>();
-		FileBalancer fileBalancer = getFileBalancer(classe);
-		List<File> directories = fileBalancer.listBalancedDirectories();		
+		List<File> files = new ArrayList<File>();		 
+		List<File> directories = new HistoryWriter(getFilePath(classe), maxFilesPerDiretory).listDirectories();
 		for (File directory : directories) {
 			files.addAll(Arrays.asList(directory.listFiles(fileFilter)));
 		}
@@ -213,7 +206,7 @@ public class FileCore {
 			if (entitiesBalancers.containsKey(classe)) {
 				return entitiesBalancers.get(classe);
 			}
-			entitiesBalancers.put(classe, new FileBalancer("GROUP_", maxFilesPerDiretory, getFilePath(classe).toPath()));
+			entitiesBalancers.put(classe, new FileBalancer("GROUP_", maxFilesPerDiretory, getFilePath(classe).toPath()));			
 		}
 		return entitiesBalancers.get(classe);
 	}

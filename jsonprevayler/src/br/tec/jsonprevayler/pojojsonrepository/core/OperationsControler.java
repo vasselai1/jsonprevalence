@@ -57,7 +57,7 @@ public class OperationsControler <T extends PrevalenceEntity> {
 	private final JoSqlGroupInMapOperation<T> joSqlGroupInMapOperation;
 	private final ListVersionsOperation<T> listVersionsOperation;
 	private final OverwriteOperation<T> overwriteOperation;
-	private final DeleteHistoryOperation<T> deleteHistoryAndDetailsOperation;
+	private final DeleteHistoryOperation<T> deleteHistoryOperation;
 
 	public OperationsControler(PrevalenceConfigurator prevalenceConfigurator, SearchProcessorFactory searchProcessorFactory) {
 		this.prevalenceConfigurator = prevalenceConfigurator;
@@ -80,7 +80,7 @@ public class OperationsControler <T extends PrevalenceEntity> {
 		joSqlGroupInMapOperation = new JoSqlGroupInMapOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
 		listVersionsOperation = new ListVersionsOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
 		overwriteOperation = new OverwriteOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
-		deleteHistoryAndDetailsOperation = new DeleteHistoryOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
+		deleteHistoryOperation = new DeleteHistoryOperation<T>(prevalenceConfigurator, sequenceProvider, memoryCore, fileCore);
 	}
 
 	public void save(T entity) throws InternalPrevalenceException, ValidationPrevalenceException {
@@ -165,8 +165,8 @@ public class OperationsControler <T extends PrevalenceEntity> {
 		overwriteOperation.set(classe, id, versionDate).execute();
 	}
 
-	public void deleteHistoryAndDetails(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
-		deleteHistoryAndDetailsOperation.set(classe, id).execute();
+	public void deleteHistory(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
+		deleteHistoryOperation.set(classe, id).execute();
 	}
 	
 	public static void registerObserver(PrevalenceChangeObserver observer) {

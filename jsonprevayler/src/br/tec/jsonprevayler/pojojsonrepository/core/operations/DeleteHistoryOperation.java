@@ -35,7 +35,7 @@ public class DeleteHistoryOperation <T extends PrevalenceEntity> extends Commons
 		}
 		List<File> historyFiles = fileCore.listVersions(classeInternal, id);
 		if (historyFiles.isEmpty()) {
-			throw new ValidationPrevalenceException("Hisotry for entity " + classe.getSimpleName() + " id = " + id + " not found!");
+			throw new ValidationPrevalenceException("History for entity " + classe.getSimpleName() + " id = " + id + " not found!");
 		} 
 		for (File fileLoop : historyFiles) {
 			if (!fileLoop.delete()) {

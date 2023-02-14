@@ -1,10 +1,13 @@
 package br.tec.jsonprevayler.pojojsonrepository.core.operations;
 
+import java.io.File;
+
 import br.tec.jsonprevayler.entity.PrevalenceEntity;
 import br.tec.jsonprevayler.entity.TotalChangesPrevalenceSystem;
 import br.tec.jsonprevayler.entity.VersionedEntity;
 import br.tec.jsonprevayler.exceptions.InternalPrevalenceException;
 import br.tec.jsonprevayler.exceptions.ValidationPrevalenceException;
+import br.tec.jsonprevayler.infrastrutuctre.HistoryWriter;
 import br.tec.jsonprevayler.infrastrutuctre.SequenceProvider;
 import br.tec.jsonprevayler.infrastrutuctre.configuration.PrevalenceConfigurator;
 import br.tec.jsonprevayler.pojojsonrepository.core.FileCore;
@@ -61,8 +64,9 @@ public class SaveOperation <T extends PrevalenceEntity> extends CommonsOperation
 		try {
 			T entitySave = ObjectCopyUtil.copyEntity(entity);
 			updateState(OperationState.BINARY_COPY_OK);
-			fileCore.writeRegister(classeInternal, entitySave);
+			File fileRegister = fileCore.writeRegister(classeInternal, entitySave);
 			updateState(OperationState.ENTITY_WRITED);
+			new HistoryWriter(fileCore.getFilePath(classeInternal), prevalenceConfigurator.getNumberOfFilesPerDiretory()).writeHistory(fileRegister, dateProvider);			
 			sequenceProvider.get(TotalChangesPrevalenceSystem.class);
 			updateState(OperationState.PREVALENCE_VERSION_UPDATED);
 			memoryCore.updateMemory(classeInternal, MemoryOperationType.SAVE, entitySave);

@@ -107,8 +107,8 @@ public class PrevalentRepository {
 		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).overwrite(classe, id, null);
 	}	
 	
-	public <T extends PrevalenceEntity> void deleteHistoryAndDetails(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
-		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).deleteHistoryAndDetails(classe, id);
+	public <T extends PrevalenceEntity> void deleteHistory(Class<T> classe, Long id) throws InternalPrevalenceException, ValidationPrevalenceException {
+		new OperationsControler<T>(prevalenceConfigurator, getSearchProcessorFactory()).deleteHistory(classe, id);
 	}
 	
 	public void registerObserver(PrevalenceChangeObserver observer) {
